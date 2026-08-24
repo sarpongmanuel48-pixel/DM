@@ -3,33 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const NAV = [
-  { href: "/dashboard/home", label: "Home" },
-  { href: "/dashboard/editor", label: "Editor" },
-  { href: "/dashboard/offers", label: "Offers" },
-  { href: "/dashboard/analytics", label: "Analytics" },
-  { href: "/dashboard/settings", label: "Settings" },
-];
-
-const STATUS_COLOR: Record<string, string> = {
-  CONNECTED: "var(--success)",
-  EXPIRED: "var(--danger)",
-  DISCONNECTED: "var(--ink-400)",
-};
-const STATUS_LABEL: Record<string, string> = {
-  CONNECTED: "Connected",
-  EXPIRED: "Whop disconnected",
-  DISCONNECTED: "Not connected",
-};
-
-export function DashboardHeader({
-  connectionStatus,
-  initials,
-}: {
-  connectionStatus: "CONNECTED" | "EXPIRED" | "DISCONNECTED";
-  initials: string;
-}) {
+export function DashboardHeader({ companyId, initials }: { companyId: string; initials: string }) {
   const pathname = usePathname();
+  const base = `/dashboard/${companyId}`;
+  const NAV = [
+    { href: `${base}/home`, label: "Home" },
+    { href: `${base}/editor`, label: "Editor" },
+    { href: `${base}/offers`, label: "Offers" },
+    { href: `${base}/analytics`, label: "Analytics" },
+    { href: `${base}/settings`, label: "Settings" },
+  ];
 
   return (
     <header className="flex items-center justify-between border-b border-hairline bg-white px-5.5 py-3.5">
@@ -47,18 +30,12 @@ export function DashboardHeader({
           ))}
         </nav>
       </div>
-      <div className="flex items-center gap-2.5">
-        <span className="qbx-statuspill" style={{ ["--_c" as string]: STATUS_COLOR[connectionStatus] }}>
-          <span className="qbx-statuspill__dot" />
-          {STATUS_LABEL[connectionStatus]}
-        </span>
-        <span
-          className="flex items-center justify-center rounded-full font-display text-[11px] font-bold"
-          style={{ width: 28, height: 28, background: "var(--accent-soft)", color: "var(--accent-ink)" }}
-        >
-          {initials}
-        </span>
-      </div>
+      <span
+        className="flex items-center justify-center rounded-full font-display text-[11px] font-bold"
+        style={{ width: 28, height: 28, background: "var(--accent-soft)", color: "var(--accent-ink)" }}
+      >
+        {initials}
+      </span>
     </header>
   );
 }

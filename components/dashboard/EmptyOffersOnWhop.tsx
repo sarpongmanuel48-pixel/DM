@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ResyncButton } from "@/components/dashboard/ResyncButton";
 
 // 4E — connected but the Whop account has zero published products yet.
-export function EmptyOffersOnWhop({ lastSyncedAt }: { lastSyncedAt: Date | null }) {
+export function EmptyOffersOnWhop({ companyId, lastSyncedAt }: { companyId: string; lastSyncedAt: Date | null }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
@@ -33,7 +33,7 @@ export function EmptyOffersOnWhop({ lastSyncedAt }: { lastSyncedAt: Date | null 
           <a href="https://whop.com" target="_blank" rel="noreferrer" className="qbx-btn qbx-btn--md qbx-btn--primary">
             Create a product on Whop
           </a>
-          <ResyncButton />
+          <ResyncButton companyId={companyId} />
         </div>
         <div className="font-mono text-[11.5px] text-ink-300">
           last checked {lastSyncedAt?.toLocaleString() ?? "never"} · checks every 6h
@@ -53,7 +53,7 @@ export function EmptyOffersOnWhop({ lastSyncedAt }: { lastSyncedAt: Date | null 
             Visitors see your name, bio and social links. Offers appear the moment you have one.
           </div>
         </div>
-        <Link href="/dashboard/home" className="flex-none whitespace-nowrap text-[12.5px] font-medium text-blue-600">
+        <Link href={`/dashboard/${companyId}/home`} className="flex-none whitespace-nowrap text-[12.5px] font-medium text-blue-600">
           Preview page
         </Link>
       </div>

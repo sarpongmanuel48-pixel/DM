@@ -9,10 +9,11 @@ import { prisma } from "@/lib/prisma";
  * isn't what Whop actually sends).
  *
  * Correlation limitation: the payload carries `user_id`, not a DM-chosen
- * identifier, so it's matched against Creator.whopUserId — the account that
- * creator used for their own "Connect Whop" step. A creator who pays for DM
- * Pro with a *different* Whop account than the one they connected won't
- * auto-match; acceptable for the pilot.
+ * identifier, so it's matched against Creator.whopUserId — kept fresh on
+ * every dashboard visit by lib/whop/dashboard-auth.ts's token verification.
+ * An admin who pays for DM Pro with a *different* Whop account than the one
+ * they last opened the dashboard with won't auto-match; acceptable for the
+ * pilot.
  */
 
 interface MembershipWebhookPayload {

@@ -1,28 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { requireAdminForCreator, DashboardAuthError } from "@/lib/whop/dashboard-auth";
 
-/** "Make featured" (3B row action / 2C onboarding pick) — sets the one
- * Offer Card rendered large at the top of the storefront. */
+/** "Make featured" (3B row action) — sets the one Offer Card rendered
+ * large at the top of the storefront. */
 export async function POST(request: NextRequest, { params }: { params: Promise<{ offerId: string }> }) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
-
   const { offerId } = await params;
-  const creator = await prisma.creator.findUnique({ where: { userId: session.user.id } });
-  if (!creator) {
-    return NextResponse.json({ error: "no creator for this account" }, { status: 404 });
-  }
 
   const offer = await prisma.offer.findUnique({ where: { id: offerId } });
-  if (!offer || offer.creatorId !== creator.id) {
+  if (!offer) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
 
+  try {
+    await requireAdminForCreator(offer.creatorId, request.headers);
+  } catch (error) {
+    if (error instanceof DashboardAuthError) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
+    throw error;
+  }
+
   await prisma.creator.update({
-    where: { id: creator.id },
+    where: { id: offer.creatorId },
     data: { featuredOfferId: offerId },
   });
 

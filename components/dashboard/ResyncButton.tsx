@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
-export function ResyncButton() {
+export function ResyncButton({ companyId }: { companyId: string }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [justSynced, setJustSynced] = useState(false);
@@ -15,7 +15,7 @@ export function ResyncButton() {
       className="qbx-btn qbx-btn--utility"
       onClick={() => {
         startTransition(async () => {
-          await fetch("/api/sync", { method: "POST" });
+          await fetch(`/api/dashboard/${companyId}/sync`, { method: "POST" });
           setJustSynced(true);
           router.refresh();
           setTimeout(() => setJustSynced(false), 2000);

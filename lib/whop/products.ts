@@ -28,14 +28,6 @@ export interface FetchedAccountProfile {
   verified: boolean;
 }
 
-/** The creator's own company/account — resolved once per sync, cached by caller. */
-export async function fetchOwnCompanyId(client: WhopClient): Promise<string> {
-  const companies = await client.companies.list({});
-  const first = companies.data?.[0] ?? (await firstFromPage(companies));
-  if (!first) throw new Error("Connected Whop account has no company");
-  return first.id;
-}
-
 async function firstFromPage<T>(page: AsyncIterable<T>): Promise<T | undefined> {
   for await (const item of page) return item;
   return undefined;

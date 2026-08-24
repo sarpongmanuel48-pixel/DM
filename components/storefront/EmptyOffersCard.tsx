@@ -1,6 +1,5 @@
-import Link from "next/link";
-
-// 4C's empty-offers card — CTA back to the editor.
+// 4C's empty-offers card — shown to public visitors, so no dashboard link
+// (they're not the creator and likely can't reach the embedded dashboard).
 export function EmptyOffersCard() {
   return (
     <div
@@ -20,13 +19,8 @@ export function EmptyOffersCard() {
       </span>
       <div className="flex flex-col gap-1.5">
         <div className="font-display text-[17px] font-bold tracking-tight text-ink-900">No offers visible yet</div>
-        <p className="max-w-[230px] text-[13px] text-ink-500">
-          Turn an offer on in the editor, or publish a product on Whop and it lands here on the next sync.
-        </p>
+        <p className="max-w-[230px] text-[13px] text-ink-500">Check back soon.</p>
       </div>
-      <Link href="/dashboard/editor" className="qbx-btn qbx-btn--accent qbx-btn--sm">
-        Open the editor
-      </Link>
     </div>
   );
 }

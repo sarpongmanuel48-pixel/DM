@@ -8,68 +8,20 @@ datasource db {
 }
 
 // ---------------------------------------------------------------
-// Auth.js (dashboard identity) — table shapes required by
-// @auth/prisma-adapter. Entirely separate from the Whop connection
-// stored on Creator below.
+// Identity: DM runs embedded inside a creator's own Whop dashboard
+// (app/dashboard/[companyId]/), authenticated via the x-whop-user-token
+// header Whop passes on every request — see lib/whop/dashboard-auth.ts.
+// Whop is the identity provider; there is no separate DM login, session
+// table, or per-creator OAuth connection. A Creator record is keyed
+// directly to the Whop company (biz_xxx) that installed the app, and
+// read access to that company's catalog comes from a single shared
+// app-level API key plus the permissions granted at install time — not
+// a per-creator OAuth token that can expire independently.
 // ---------------------------------------------------------------
-
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-
-  accounts Account[]
-  sessions Session[]
-  creator  Creator?
-}
-
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@unique([identifier, token])
-}
 
 // ---------------------------------------------------------------
 // DM domain model
 // ---------------------------------------------------------------
-
-enum WhopConnectionStatus {
-  CONNECTED
-  EXPIRED
-  DISCONNECTED
-}
 
 enum DmSubscriptionStatus {
   ACTIVE
@@ -107,9 +59,16 @@ enum ClickSourceBucket {
 }
 
 model Creator {
-  id     String @id @default(cuid())
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id String @id @default(cuid())
+
+  // The Whop company (biz_xxx) that installed the DM dashboard app — this
+  // *is* the Creator's identity. One company installs the app once, gets
+  // one Creator record. whopUserId is whichever admin's token most
+  // recently verified against it (used to correlate the DM Pro billing
+  // webhook — see lib/whop/webhooks.ts); identity is the company, not the
+  // individual user, since multiple admins on one company see the same page.
+  whopCompanyId String  @unique
+  whopUserId    String?
 
   handle    String  @unique
   name      String
@@ -126,24 +85,22 @@ model Creator {
   links       Link[]
   clickEvents ClickEvent[]
 
-  // Whop connection — read-only data source, never a write path.
-  whopConnectionStatus WhopConnectionStatus @default(DISCONNECTED)
-  whopCompanyId        String?
-  whopUserId           String?
-  whopAccessToken      String? @db.Text
-  whopRefreshToken     String? @db.Text
-  whopTokenExpiresAt   DateTime?
-  lastSyncedAt         DateTime?
+  // Catalog sync freshness. No connect/disconnect state to track — access
+  // is via the app's single WHOP_API_KEY plus permissions granted at
+  // install, not a per-creator token that can expire independently.
+  lastSyncedAt DateTime?
 
-  // DM's own subscription (separate Whop company/product), flipped by webhook.
-  dmSubscriptionStatus  DmSubscriptionStatus @default(INACTIVE)
-  dmWhopMembershipId    String?
+  // DM's own subscription (a separate Whop company/product from anything
+  // the creator sells) — flipped by webhook. Flat $15/mo, one plan, no
+  // tiers — see the build brief.
+  dmSubscriptionStatus DmSubscriptionStatus @default(INACTIVE)
+  dmWhopMembershipId   String?
 
   publishedAt DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@index([whopConnectionStatus])
+  @@index([dmSubscriptionStatus])
 }
 
 model Offer {

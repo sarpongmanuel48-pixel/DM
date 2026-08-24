@@ -9,7 +9,7 @@ export interface EditorLink {
   url: string;
 }
 
-export function LinksEditor({ links: initial }: { links: EditorLink[] }) {
+export function LinksEditor({ companyId, links: initial }: { companyId: string; links: EditorLink[] }) {
   const router = useRouter();
   const [links, setLinks] = useState(initial);
   const [label, setLabel] = useState("");
@@ -17,7 +17,7 @@ export function LinksEditor({ links: initial }: { links: EditorLink[] }) {
 
   async function addLink() {
     if (!label || !url) return;
-    const res = await fetch("/api/links", {
+    const res = await fetch(`/api/dashboard/${companyId}/links`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ label, url }),

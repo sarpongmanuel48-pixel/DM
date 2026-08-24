@@ -1,4 +1,6 @@
+import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { requireAdminForCreator } from "@/lib/whop/dashboard-auth";
 
 /**
  * 3B's identity fields. Avatar is a pasted image URL for this pass — real
@@ -20,6 +22,10 @@ export function SaveIdentityForm({
 }) {
   async function save(formData: FormData) {
     "use server";
+    // Server Actions bypass the layout's page-render auth check — a
+    // client that already loaded the page could still invoke this
+    // directly, so it re-verifies admin access itself.
+    await requireAdminForCreator(creatorId, await headers());
     await prisma.creator.update({
       where: { id: creatorId },
       data: {
