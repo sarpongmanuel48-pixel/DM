@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DM
 
-## Getting Started
+A link-in-bio storefront for Whop creators. DM reads a creator's live products from
+their Whop account (memberships, courses, coaching, consulting, free downloads) and
+presents them as one polished public page at `dm.to/[handle]`. Visitors tap through to
+Whop's own checkout — DM never handles payment itself.
 
-First, run the development server:
+## Stack
+
+Next.js 16 (App Router, Turbopack), Prisma + PostgreSQL (Supabase), Tailwind CSS v4,
+Auth.js v5 (dashboard identity), and the official `@whop/sdk` behind a single adapter
+layer (`lib/whop/`) for the read-only Whop connection.
+
+## Getting started
 
 ```bash
+npm install
+cp .env.example .env   # fill in the values — see comments in the file
+npx prisma migrate dev
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `app/[handle]/` — the public storefront (unauthenticated, card-stack layout)
+- `app/(auth)/`, `app/onboarding/` — sign-up and the Whop-connect → import → claim-handle flow
+- `app/dashboard/` — the creator dashboard (embedded in Whop, authenticated)
+- `app/api/whop/` — the OAuth connect flow, webhooks, and streaming import
+- `lib/whop/` — the Whop adapter (OAuth, product/plan sync, checkout, webhooks) — the
+  only place that talks to Whop's API directly
+- `components/` — UI components, organized by surface (`dashboard/`, `storefront/`,
+  `offer-card/`, `onboarding/`)
+- `prisma/` — schema and migrations
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See `AGENTS.md` for Next.js version-specific conventions and `DM-build-prompt.md` for
+the original product brief.
