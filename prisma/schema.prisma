@@ -1,0 +1,206 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------
+// Auth.js (dashboard identity) — table shapes required by
+// @auth/prisma-adapter. Entirely separate from the Whop connection
+// stored on Creator below.
+// ---------------------------------------------------------------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+
+  accounts Account[]
+  sessions Session[]
+  creator  Creator?
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ---------------------------------------------------------------
+// DM domain model
+// ---------------------------------------------------------------
+
+enum WhopConnectionStatus {
+  CONNECTED
+  EXPIRED
+  DISCONNECTED
+}
+
+enum DmSubscriptionStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum OfferSource {
+  WHOP
+  CUSTOM
+}
+
+enum OfferType {
+  MEMBERSHIP
+  COURSE
+  COACHING
+  CONSULTING
+  FREE
+}
+
+// How the price is presented — mirrors the six card variants in 4F.
+enum PriceUnit {
+  RECURRING_MONTH
+  ONE_TIME
+  PER_SESSION
+  PROJECT
+  FREE
+}
+
+enum ClickSourceBucket {
+  INSTAGRAM
+  TIKTOK
+  YOUTUBE
+  DIRECT
+  OTHER
+}
+
+model Creator {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  handle    String  @unique
+  name      String
+  tagline   String?
+  bio       String?
+  avatarUrl String?
+  // Read-only, populated from Whop's account data on sync — not creator-editable.
+  verified  Boolean @default(false)
+
+  featuredOfferId String? @unique
+  featuredOffer   Offer?  @relation("FeaturedOffer", fields: [featuredOfferId], references: [id], onDelete: SetNull)
+
+  offers      Offer[]      @relation("CreatorOffers")
+  links       Link[]
+  clickEvents ClickEvent[]
+
+  // Whop connection — read-only data source, never a write path.
+  whopConnectionStatus WhopConnectionStatus @default(DISCONNECTED)
+  whopCompanyId        String?
+  whopUserId           String?
+  whopAccessToken      String? @db.Text
+  whopRefreshToken     String? @db.Text
+  whopTokenExpiresAt   DateTime?
+  lastSyncedAt         DateTime?
+
+  // DM's own subscription (separate Whop company/product), flipped by webhook.
+  dmSubscriptionStatus  DmSubscriptionStatus @default(INACTIVE)
+  dmWhopMembershipId    String?
+
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([whopConnectionStatus])
+}
+
+model Offer {
+  id        String  @id @default(cuid())
+  creatorId String
+  creator   Creator @relation("CreatorOffers", fields: [creatorId], references: [id], onDelete: Cascade)
+  featuredFor Creator? @relation("FeaturedOffer")
+
+  source OfferSource @default(WHOP)
+
+  // ---- Synced from Whop — never accepted by the offer edit API ----
+  whopProductId   String?
+  type            OfferType
+  name            String
+  priceCents      Int?
+  priceUnit       PriceUnit
+  whopCheckoutUrl String?
+
+  // ---- Creator-editable ----
+  description  String?
+  thumbnailUrl String?
+  visible      Boolean @default(true)
+  sortOrder    Int     @default(0)
+
+  lastSyncedAt DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  clickEvents ClickEvent[]
+
+  @@unique([creatorId, whopProductId])
+  @@index([creatorId])
+}
+
+model Link {
+  id        String   @id @default(cuid())
+  creatorId String
+  creator   Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  label     String
+  url       String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([creatorId])
+}
+
+model ClickEvent {
+  id        String   @id @default(cuid())
+  creatorId String
+  creator   Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  // Null offerId = a page visit. Set = a handoff click on that offer.
+  offerId   String?
+  offer     Offer?   @relation(fields: [offerId], references: [id], onDelete: SetNull)
+  timestamp DateTime @default(now())
+  referrer  String?
+  sourceBucket ClickSourceBucket @default(DIRECT)
+
+  @@index([creatorId, timestamp])
+  @@index([offerId])
+}

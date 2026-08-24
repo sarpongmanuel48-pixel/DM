@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# prisma generated client
+/generated/
+
+# design-tool exports — reference material, already used to build the UI;
+# not app code, and the extracted folder carries a large third-party JS bundle
+/UI mockups discussion-handoff.zip
+/UI mockups discussion-handoff/
+/UI mockups discussion.pdf
+/SKILL.md
