@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireCompanyAdmin, DashboardAuthError } from "@/lib/whop/dashboard-auth";
+import { requireCompanyAdmin, getCreatorByCompanyId, DashboardAuthError } from "@/lib/whop/dashboard-auth";
 
 const createSchema = z.object({
   label: z.string().min(1).max(40),
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     throw error;
   }
 
-  const creator = await prisma.creator.findUnique({ where: { whopCompanyId: companyId } });
+  const creator = await getCreatorByCompanyId(companyId);
   if (!creator) {
     return NextResponse.json({ error: "no creator for this company" }, { status: 404 });
   }

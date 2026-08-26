@@ -1,4 +1,6 @@
+import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getCreatorByCompanyId } from "@/lib/whop/dashboard-auth";
 import { ResyncButton } from "@/components/dashboard/ResyncButton";
 import { OfferRow } from "@/components/dashboard/OfferRow";
 import { EmptyOffersOnWhop } from "@/components/dashboard/EmptyOffersOnWhop";
@@ -6,8 +8,10 @@ import { EmptyOffersOnWhop } from "@/components/dashboard/EmptyOffersOnWhop";
 // 3C — synced (read-only) vs. editable columns, plus 4E's empty state.
 export default async function OffersPage({ params }: PageProps<"/dashboard/[companyId]/offers">) {
   const { companyId } = await params;
+  const creatorId = (await getCreatorByCompanyId(companyId))?.id;
+  if (!creatorId) notFound();
   const creator = await prisma.creator.findUniqueOrThrow({
-    where: { whopCompanyId: companyId },
+    where: { id: creatorId },
     include: { offers: { orderBy: { sortOrder: "asc" } } },
   });
 

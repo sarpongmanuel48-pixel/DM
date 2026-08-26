@@ -1,4 +1,5 @@
-import { prisma } from "@/lib/prisma";
+import { notFound } from "next/navigation";
+import { getCreatorByCompanyId } from "@/lib/whop/dashboard-auth";
 import { getDmProCheckoutUrl } from "@/lib/whop/checkout";
 
 function SettingsSection({ title, children }: { title: string; children: React.ReactNode }) {
@@ -13,7 +14,8 @@ function SettingsSection({ title, children }: { title: string; children: React.R
 // 3E — page address, Whop connection, custom domain (coming soon), billing.
 export default async function SettingsPage({ params }: PageProps<"/dashboard/[companyId]/settings">) {
   const { companyId } = await params;
-  const creator = await prisma.creator.findUniqueOrThrow({ where: { whopCompanyId: companyId } });
+  const creator = await getCreatorByCompanyId(companyId);
+  if (!creator) notFound();
   const dmProUrl = await getDmProCheckoutUrl().catch(() => null);
 
   return (

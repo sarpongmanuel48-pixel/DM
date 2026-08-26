@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireCompanyAdmin, DashboardAuthError } from "@/lib/whop/dashboard-auth";
-import { prisma } from "@/lib/prisma";
-import { syncCreator } from "@/lib/whop/sync";
+import { requireCompanyAdmin, getCreatorByCompanyId, DashboardAuthError } from "@/lib/whop/dashboard-auth";
+import { syncCreator } from "@/lib/connectors/sync";
 
 /** Manual "Re-sync now" — dashboard Home/Offers (3A/3C). */
 export async function POST(request: NextRequest, { params }: { params: Promise<{ companyId: string }> }) {
@@ -16,7 +15,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     throw error;
   }
 
-  const creator = await prisma.creator.findUnique({ where: { whopCompanyId: companyId } });
+  const creator = await getCreatorByCompanyId(companyId);
   if (!creator) {
     return NextResponse.json({ error: "no creator for this company" }, { status: 404 });
   }

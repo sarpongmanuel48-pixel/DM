@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getCreatorByCompanyId } from "@/lib/whop/dashboard-auth";
 import { daysAgo } from "@/lib/dates";
 import { CopyButton } from "@/components/CopyButton";
 import { ResyncButton } from "@/components/dashboard/ResyncButton";
@@ -10,8 +12,10 @@ import { VisitsChart } from "@/components/dashboard/VisitsChart";
 // 3A (+ 4D's first-run checklist).
 export default async function DashboardHomePage({ params }: PageProps<"/dashboard/[companyId]/home">) {
   const { companyId } = await params;
+  const creatorId = (await getCreatorByCompanyId(companyId))?.id;
+  if (!creatorId) notFound();
   const creator = await prisma.creator.findUniqueOrThrow({
-    where: { whopCompanyId: companyId },
+    where: { id: creatorId },
     include: { offers: true },
   });
 

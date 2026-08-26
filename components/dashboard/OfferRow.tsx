@@ -12,6 +12,7 @@ const TYPE_STYLE: Record<OfferType, { bg: string; fg: string }> = {
   COACHING: { bg: "rgba(226,104,12,.1)", fg: "#c25a0a" },
   CONSULTING: { bg: "rgba(94,113,134,.1)", fg: "#5e7186" },
   FREE: { bg: "var(--canvas-soft)", fg: "var(--ink-500)" },
+  OTHER: { bg: "var(--canvas-soft)", fg: "var(--ink-500)" },
 };
 
 export interface OfferRowData {

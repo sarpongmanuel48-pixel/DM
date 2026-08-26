@@ -1,4 +1,5 @@
 import type { WhopClient } from "@whop/sdk";
+import type { NormalizedBillingInterval, NormalizedProduct, NormalizedProductType } from "@/lib/connectors/types";
 
 /**
  * Whop's Product/Plan API has no membership/course/coaching/consulting/free
@@ -7,19 +8,15 @@ import type { WhopClient } from "@whop/sdk";
  * from the signals Whop actually exposes, then handed to the creator to
  * correct — see the Offers screen (3C). It is NOT re-synced afterward.
  */
-export type DetectedOfferType = "MEMBERSHIP" | "COURSE" | "COACHING" | "CONSULTING" | "FREE";
-export type DetectedPriceUnit = "RECURRING_MONTH" | "ONE_TIME" | "PER_SESSION" | "PROJECT" | "FREE";
+type DetectedOfferType = "MEMBERSHIP" | "COURSE" | "COACHING" | "CONSULTING" | "FREE";
 
-export interface FetchedOffer {
-  whopProductId: string;
-  name: string;
-  description: string | null;
-  thumbnailUrl: string | null;
-  whopCheckoutUrl: string;
-  priceCents: number | null;
-  type: DetectedOfferType;
-  priceUnit: DetectedPriceUnit;
-}
+const TYPE_TO_NORMALIZED: Record<DetectedOfferType, NormalizedProductType> = {
+  MEMBERSHIP: "membership",
+  COURSE: "course",
+  COACHING: "coaching",
+  CONSULTING: "consulting",
+  FREE: "free",
+};
 
 export interface FetchedAccountProfile {
   whopCompanyId: string;
@@ -46,19 +43,31 @@ export async function fetchAccountProfile(
   };
 }
 
-/** Fetches every visible product + its primary plan, mapped to DM's Offer shape. */
-export async function fetchOffers(client: WhopClient, companyId: string): Promise<FetchedOffer[]> {
-  const offers: FetchedOffer[] = [];
-  for await (const offer of streamOffers(client, companyId)) offers.push(offer);
-  return offers;
+/** Fetches every visible product + its primary plan, normalized to the
+ * Connector contract's shape. `connectionId` is stamped onto each result —
+ * callers get it from the creator's `Connection` row (see
+ * `lib/connectors/registry.ts`). */
+export async function fetchProducts(
+  client: WhopClient,
+  companyId: string,
+  connectionId: string,
+): Promise<NormalizedProduct[]> {
+  const products: NormalizedProduct[] = [];
+  for await (const product of streamProducts(client, companyId, connectionId)) products.push(product);
+  return products;
 }
 
 /**
- * Same as fetchOffers, but yields each offer as soon as it's mapped — used
- * by the onboarding import stream (2B) so the page can render products
- * landing one by one instead of a spinner that dumps the full list at once.
+ * Same as fetchProducts, but yields each product as soon as it's mapped —
+ * used by the onboarding import stream (2B) so the page can render
+ * products landing one by one instead of a spinner that dumps the full
+ * list at once.
  */
-export async function* streamOffers(client: WhopClient, companyId: string): AsyncGenerator<FetchedOffer> {
+export async function* streamProducts(
+  client: WhopClient,
+  companyId: string,
+  connectionId: string,
+): AsyncGenerator<NormalizedProduct> {
   const products = await client.products.list({
     account_id: companyId,
     visibilities: ["visible"],
@@ -76,15 +85,18 @@ export async function* streamOffers(client: WhopClient, companyId: string): Asyn
 
     const type = await detectOfferType(client, companyId, product, plan);
     yield {
-      whopProductId: product.id,
+      id: product.id,
+      connectionId,
       name: product.title,
       // Prefill only — creator-owned after the first import, never overwritten by later syncs.
       description: product.headline,
       thumbnailUrl: product.gallery_images[0]?.url ?? null,
-      whopCheckoutUrl: plan.purchase_url,
-      priceCents: priceCentsFor(plan, type),
-      type,
-      priceUnit: priceUnitFor(plan, type),
+      checkoutUrl: plan.purchase_url,
+      price: priceCentsFor(plan, type),
+      currency: null, // Whop's plan API doesn't expose a currency code today — revisit if that changes.
+      billingInterval: billingIntervalFor(plan, type),
+      type: TYPE_TO_NORMALIZED[type],
+      status: "active",
     };
   }
 }
@@ -97,12 +109,11 @@ function priceCentsFor(plan: { renewal_price: number; initial_price: number }, t
   return Math.round(amount * 100);
 }
 
-function priceUnitFor(plan: { plan_type: string }, type: DetectedOfferType): DetectedPriceUnit {
-  if (type === "FREE") return "FREE";
-  if (plan.plan_type === "renewal") return "RECURRING_MONTH";
-  if (type === "COACHING") return "PER_SESSION";
-  if (type === "CONSULTING") return "PROJECT";
-  return "ONE_TIME";
+function billingIntervalFor(plan: { plan_type: string }, type: DetectedOfferType): NormalizedBillingInterval {
+  if (type === "FREE") return null;
+  if (plan.plan_type === "renewal") return "monthly";
+  if (type === "COACHING") return "per_session";
+  return "one_time";
 }
 
 async function detectOfferType(

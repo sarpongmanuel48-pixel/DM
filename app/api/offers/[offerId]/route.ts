@@ -7,8 +7,8 @@ import { requireAdminForCreator, DashboardAuthError } from "@/lib/whop/dashboard
  * Read-only-vs-editable is enforced here, not just in the UI: this schema
  * has no fields for name/price/whopProductId — there is no code path that
  * can accept them, regardless of what a client sends. `type` is the one
- * exception moved into the editable set (see lib/whop/products.ts's doc
- * comment — Whop has no such field to sync it from in the first place).
+ * exception moved into the editable set (see lib/connectors/whop/products.ts's
+ * doc comment — Whop has no such field to sync it from in the first place).
  */
 const patchSchema = z
   .object({

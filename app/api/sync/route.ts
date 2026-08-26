@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { syncAllCreators } from "@/lib/whop/sync";
+import { syncAllCreators } from "@/lib/connectors/sync";
 
 /** Vercel Cron hits this every 6h (see vercel.json) to refresh every
  * creator's catalog — the "checks every 6h" copy on 3A/4E. */

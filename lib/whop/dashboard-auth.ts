@@ -1,5 +1,6 @@
 import { importJWK, jwtVerify } from "jose";
-import { whopClientForCompany } from "@/lib/whop/client";
+import { whopClientForCompany } from "@/lib/connectors/whop/client";
+import { getCreatorByExternalId } from "@/lib/connectors/registry";
 import { prisma } from "@/lib/prisma";
 import type { Creator } from "@/generated/prisma/client";
 
@@ -100,14 +101,16 @@ export async function requireCompanyAdmin(
 
 /**
  * The main entry point for every dashboard page: verify the request, then
- * load (or note the absence of) this company's Creator record.
+ * load (or note the absence of) this company's Creator record — resolved
+ * via their "whop" Connection, not a direct field on Creator (see
+ * lib/connectors/registry.ts).
  */
 export async function getCurrentCreator(
   companyId: string,
   requestHeaders: Headers,
 ): Promise<{ whopUserId: string; creator: Creator | null }> {
   const { whopUserId } = await requireCompanyAdmin(companyId, requestHeaders);
-  const creator = await prisma.creator.findUnique({ where: { whopCompanyId: companyId } });
+  const creator = await getCreatorByExternalId("whop", companyId);
 
   // Keep whopUserId fresh — it's how the DM Pro billing webhook correlates
   // a membership purchase back to a Creator (see lib/whop/webhooks.ts).
@@ -121,34 +124,64 @@ export async function getCurrentCreator(
 /**
  * For routes that act on a resource owned by a creator (an offer, a link)
  * rather than a companyId in the URL — looks up the creator, verifies the
- * requester is an admin on that creator's company, and returns it. Throws
- * DashboardAuthError on any failure, including a creatorId that doesn't
- * exist (reported as "not_admin" — same response either way, no need to
- * leak which one).
+ * requester is an admin on that creator's Whop company, and returns it.
+ * Throws DashboardAuthError on any failure, including a creatorId that
+ * doesn't exist (reported as "not_admin" — same response either way, no
+ * need to leak which one).
  */
 export async function requireAdminForCreator(creatorId: string, requestHeaders: Headers): Promise<Creator> {
-  const creator = await prisma.creator.findUnique({ where: { id: creatorId } });
-  if (!creator) {
+  const creator = await prisma.creator.findUnique({
+    where: { id: creatorId },
+    include: { connections: { where: { platform: "whop" } } },
+  });
+  const whopConnection = creator?.connections[0];
+  if (!creator || !whopConnection) {
     throw new DashboardAuthError(`No creator ${creatorId}`, "not_admin");
   }
-  await requireCompanyAdmin(creator.whopCompanyId, requestHeaders);
+  await requireCompanyAdmin(whopConnection.externalId, requestHeaders);
   return creator;
 }
 
 /**
+ * Thin, Whop-specific wrapper over `getCreatorByExternalId` — every
+ * /dashboard/[companyId] page and API route resolves its creator this way
+ * (in place of the old `prisma.creator.findUnique({ where: { whopCompanyId } })`).
+ */
+export async function getCreatorByCompanyId(companyId: string): Promise<Creator | null> {
+  return getCreatorByExternalId("whop", companyId);
+}
+
+/**
  * Called the first time a verified admin is seen for a company with no
- * Creator row yet. Idempotent — an existing row is returned as-is.
+ * Creator row yet. Idempotent — an existing row is returned as-is. Creates
+ * the Creator and its "whop" Connection together in one transaction rather
+ * than going through `whopConnector.connect()` (lib/connectors/whop/index.ts)
+ * — that method can't participate in this transaction (the Connector
+ * contract has no transaction-client parameter), and without atomicity a
+ * transient failure between the two writes would orphan a Creator row and
+ * produce a duplicate on retry.
  */
 export async function getOrCreateCreator(companyId: string, whopUserId: string): Promise<Creator> {
-  const existing = await prisma.creator.findUnique({ where: { whopCompanyId: companyId } });
+  const existing = await getCreatorByExternalId("whop", companyId);
   if (existing) return existing;
 
-  return prisma.creator.create({
-    data: {
-      whopCompanyId: companyId,
-      whopUserId,
-      name: "",
-      handle: crypto.randomUUID().slice(0, 8), // placeholder — claimed for real in first-run setup
-    },
+  return prisma.$transaction(async (tx) => {
+    const creator = await tx.creator.create({
+      data: {
+        whopUserId,
+        name: "",
+        handle: crypto.randomUUID().slice(0, 8), // placeholder — claimed for real in first-run setup
+      },
+    });
+    await tx.connection.create({
+      data: {
+        creatorId: creator.id,
+        platform: "whop",
+        credentialType: "app_install",
+        externalId: companyId,
+        status: "connected",
+      },
+    });
+    return creator;
   });
 }

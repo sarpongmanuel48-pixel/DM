@@ -1,4 +1,4 @@
-export type OfferType = "MEMBERSHIP" | "COURSE" | "COACHING" | "CONSULTING" | "FREE";
+export type OfferType = "MEMBERSHIP" | "COURSE" | "COACHING" | "CONSULTING" | "FREE" | "OTHER";
 export type PriceUnit = "RECURRING_MONTH" | "ONE_TIME" | "PER_SESSION" | "PROJECT" | "FREE";
 
 export function formatPrice(priceCents: number | null, priceUnit: PriceUnit): string {

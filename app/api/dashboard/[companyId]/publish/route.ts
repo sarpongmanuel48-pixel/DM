@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { requireCompanyAdmin, DashboardAuthError } from "@/lib/whop/dashboard-auth";
+import { requireCompanyAdmin, getCreatorByCompanyId, DashboardAuthError } from "@/lib/whop/dashboard-auth";
 import { prisma } from "@/lib/prisma";
 import { isReservedHandle, isValidHandleFormat } from "@/lib/reserved-handles";
 
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     throw error;
   }
 
-  const creator = await prisma.creator.findUnique({ where: { whopCompanyId: companyId } });
+  const creator = await getCreatorByCompanyId(companyId);
   if (!creator) {
     return NextResponse.json({ error: "no creator for this company" }, { status: 404 });
   }

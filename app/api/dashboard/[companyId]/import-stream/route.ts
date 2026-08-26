@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireCompanyAdmin, DashboardAuthError } from "@/lib/whop/dashboard-auth";
+import { requireCompanyAdmin, getCreatorByCompanyId, DashboardAuthError } from "@/lib/whop/dashboard-auth";
 import { prisma } from "@/lib/prisma";
-import { whopClientForCompany } from "@/lib/whop/client";
-import { fetchAccountProfile, streamOffers } from "@/lib/whop/products";
+import { OFFER_SOURCE, upsertOffer } from "@/lib/connectors/sync";
+import { whopClientForCompany } from "@/lib/connectors/whop/client";
+import { fetchAccountProfile, streamProducts } from "@/lib/connectors/whop/products";
 
 /**
  * Backs the dashboard's first-run import — Server-Sent Events so the setup
@@ -24,10 +25,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     throw error;
   }
 
-  const creator = await prisma.creator.findUnique({ where: { whopCompanyId: companyId } });
+  const creator = await getCreatorByCompanyId(companyId);
   if (!creator) {
     return NextResponse.json({ error: "no creator for this company" }, { status: 404 });
   }
+  const connection = await prisma.connection.findUniqueOrThrow({
+    where: { creatorId_platform: { creatorId: creator.id, platform: "whop" } },
+  });
 
   const encoder = new TextEncoder();
 
@@ -47,36 +51,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         });
 
         let count = 0;
-        for await (const offer of streamOffers(client, companyId)) {
-          const existing = await prisma.offer.findUnique({
-            where: { creatorId_whopProductId: { creatorId: creator.id, whopProductId: offer.whopProductId } },
-          });
-
-          const saved = await prisma.offer.upsert({
-            where: { creatorId_whopProductId: { creatorId: creator.id, whopProductId: offer.whopProductId } },
-            create: {
-              creatorId: creator.id,
-              source: "WHOP",
-              whopProductId: offer.whopProductId,
-              name: offer.name,
-              priceCents: offer.priceCents,
-              priceUnit: offer.priceUnit,
-              type: offer.type,
-              whopCheckoutUrl: offer.whopCheckoutUrl,
-              description: offer.description,
-              thumbnailUrl: offer.thumbnailUrl,
-              sortOrder: count,
-              lastSyncedAt: new Date(),
-            },
-            update: {
-              name: offer.name,
-              priceCents: offer.priceCents,
-              priceUnit: offer.priceUnit,
-              whopCheckoutUrl: offer.whopCheckoutUrl,
-              lastSyncedAt: new Date(),
-              ...(existing ? {} : { type: offer.type }),
-            },
-          });
+        for await (const product of streamProducts(client, companyId, connection.id)) {
+          const saved = await upsertOffer(creator.id, OFFER_SOURCE.whop, product, count);
 
           count += 1;
           send("offer", {

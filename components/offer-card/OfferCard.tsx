@@ -20,6 +20,7 @@ const TILE_STYLE: Record<OfferType | "CUSTOM", { bg: string; fg: string }> = {
   COACHING: { bg: "rgba(226,104,12,.09)", fg: "#c25a0a" },
   CONSULTING: { bg: "rgba(94,113,134,.1)", fg: "#5e7186" },
   FREE: { bg: "var(--canvas-soft)", fg: "var(--ink-500)" },
+  OTHER: { bg: "var(--canvas-soft)", fg: "var(--ink-500)" },
   CUSTOM: { bg: "var(--canvas-soft)", fg: "var(--ink-700)" },
 };
 
@@ -29,6 +30,7 @@ const TYPE_LABEL: Record<OfferType | "CUSTOM", string> = {
   COACHING: "Coaching",
   CONSULTING: "Consulting",
   FREE: "Free",
+  OTHER: "Other",
   CUSTOM: "Custom link",
 };
 

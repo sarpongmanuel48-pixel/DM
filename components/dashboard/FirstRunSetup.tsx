@@ -19,6 +19,7 @@ const TYPE_LABEL: Record<OfferType, string> = {
   COACHING: "Coaching",
   CONSULTING: "Consulting",
   FREE: "Free",
+  OTHER: "Other",
 };
 
 /**

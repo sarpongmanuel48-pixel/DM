@@ -1,4 +1,6 @@
+import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getCreatorByCompanyId } from "@/lib/whop/dashboard-auth";
 import { EditorOfferList } from "@/components/dashboard/EditorOfferList";
 import { LinksEditor } from "@/components/dashboard/LinksEditor";
 import { LivePreviewPane } from "@/components/dashboard/LivePreviewPane";
@@ -8,8 +10,10 @@ import type { OfferCardData } from "@/components/offer-card/OfferCard";
 // 3B — identity fields, offer list, custom links, live preview pane.
 export default async function EditorPage({ params }: PageProps<"/dashboard/[companyId]/editor">) {
   const { companyId } = await params;
+  const creatorId = (await getCreatorByCompanyId(companyId))?.id;
+  if (!creatorId) notFound();
   const creator = await prisma.creator.findUniqueOrThrow({
-    where: { whopCompanyId: companyId },
+    where: { id: creatorId },
     include: { offers: { orderBy: { sortOrder: "asc" } }, links: { orderBy: { sortOrder: "asc" } } },
   });
 

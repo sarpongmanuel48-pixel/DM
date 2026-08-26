@@ -11,12 +11,13 @@ datasource db {
 // Identity: DM runs embedded inside a creator's own Whop dashboard
 // (app/dashboard/[companyId]/), authenticated via the x-whop-user-token
 // header Whop passes on every request — see lib/whop/dashboard-auth.ts.
-// Whop is the identity provider; there is no separate DM login, session
-// table, or per-creator OAuth connection. A Creator record is keyed
-// directly to the Whop company (biz_xxx) that installed the app, and
-// read access to that company's catalog comes from a single shared
-// app-level API key plus the permissions granted at install time — not
-// a per-creator OAuth token that can expire independently.
+// Whop is the identity provider for this phase; there is no separate DM
+// login or session table. A Creator's link to the platform(s) they've
+// connected lives on `Connection`, not on `Creator` itself — see that
+// model below and lib/connectors/. Whop's Connection reads a company's
+// catalog via a single shared app-level API key plus the permissions
+// granted at install time, not a per-creator OAuth token that can expire
+// independently — see Connection.credentialType.
 // ---------------------------------------------------------------
 
 // ---------------------------------------------------------------
@@ -39,6 +40,10 @@ enum OfferType {
   COACHING
   CONSULTING
   FREE
+  // A connector reported a product it couldn't classify into a more
+  // specific bucket — Whop's own detection never emits this today, but a
+  // future connector's might. See lib/connectors/types.ts.
+  OTHER
 }
 
 // How the price is presented — mirrors the six card variants in 4F.
@@ -61,14 +66,13 @@ enum ClickSourceBucket {
 model Creator {
   id String @id @default(cuid())
 
-  // The Whop company (biz_xxx) that installed the DM dashboard app — this
-  // *is* the Creator's identity. One company installs the app once, gets
-  // one Creator record. whopUserId is whichever admin's token most
-  // recently verified against it (used to correlate the DM Pro billing
-  // webhook — see lib/whop/webhooks.ts); identity is the company, not the
-  // individual user, since multiple admins on one company see the same page.
-  whopCompanyId String  @unique
-  whopUserId    String?
+  // Whichever admin's token most recently verified against this creator's
+  // Whop connection (used to correlate the DM Pro billing webhook — see
+  // lib/whop/webhooks.ts). This is DM's own billing-correlation identity,
+  // not a platform connection — it stays here rather than on Connection
+  // because a future connector may have no equivalent "which user" concept
+  // at all, and it isn't part of what makes a Connection unique.
+  whopUserId String?
 
   handle    String  @unique
   name      String
@@ -84,10 +88,10 @@ model Creator {
   offers      Offer[]      @relation("CreatorOffers")
   links       Link[]
   clickEvents ClickEvent[]
+  connections Connection[]
 
-  // Catalog sync freshness. No connect/disconnect state to track — access
-  // is via the app's single WHOP_API_KEY plus permissions granted at
-  // install, not a per-creator token that can expire independently.
+  // Catalog sync freshness, across all connections. Per-connection
+  // freshness lives on Connection.lastSyncedAt.
   lastSyncedAt DateTime?
 
   // DM's own subscription (a separate Whop company/product from anything
@@ -97,16 +101,43 @@ model Creator {
   dmWhopMembershipId   String?
 
   publishedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([dmSubscriptionStatus])
 }
 
-model Offer {
+// A creator's connection to one external platform — what generalizes
+// beyond Whop. See lib/connectors/types.ts for the Connector contract
+// every platform must satisfy, and lib/connectors/registry.ts for how a
+// Creator gets resolved from a platform + externalId (the replacement for
+// the old direct `Creator.whopCompanyId` lookup).
+model Connection {
   id        String  @id @default(cuid())
   creatorId String
-  creator   Creator @relation("CreatorOffers", fields: [creatorId], references: [id], onDelete: Cascade)
+  creator   Creator @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  platform       String // "whop" today
+  // "app_install" for Whop — a single shared app-level API key, scoped by
+  // permissions granted when the company installed DM, not a per-creator
+  // token. A future OAuth-based connector (e.g. Patreon) would store
+  // "oauth" here and its refresh token elsewhere, not on this row.
+  credentialType String
+  // The platform's own id for this connection — a Whop company id (biz_xxx) today.
+  externalId     String
+
+  status       String // "connected" | "paused" | "disconnected"
+  lastSyncedAt DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@unique([creatorId, platform])
+  @@unique([platform, externalId])
+}
+
+model Offer {
+  id          String   @id @default(cuid())
+  creatorId   String
+  creator     Creator  @relation("CreatorOffers", fields: [creatorId], references: [id], onDelete: Cascade)
   featuredFor Creator? @relation("FeaturedOffer")
 
   source OfferSource @default(WHOP)
@@ -126,8 +157,8 @@ model Offer {
   sortOrder    Int     @default(0)
 
   lastSyncedAt DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   clickEvents ClickEvent[]
 
@@ -148,14 +179,14 @@ model Link {
 }
 
 model ClickEvent {
-  id        String   @id @default(cuid())
-  creatorId String
-  creator   Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  id           String            @id @default(cuid())
+  creatorId    String
+  creator      Creator           @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   // Null offerId = a page visit. Set = a handoff click on that offer.
-  offerId   String?
-  offer     Offer?   @relation(fields: [offerId], references: [id], onDelete: SetNull)
-  timestamp DateTime @default(now())
-  referrer  String?
+  offerId      String?
+  offer        Offer?            @relation(fields: [offerId], references: [id], onDelete: SetNull)
+  timestamp    DateTime          @default(now())
+  referrer     String?
   sourceBucket ClickSourceBucket @default(DIRECT)
 
   @@index([creatorId, timestamp])

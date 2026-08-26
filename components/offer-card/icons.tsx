@@ -64,10 +64,20 @@ export function CustomLinkIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+// A connector reported a product it couldn't classify — see lib/connectors/types.ts.
+export function OtherIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <circle cx="12" cy="12" r="9" />
+    </Icon>
+  );
+}
+
 export const OFFER_TYPE_ICON = {
   MEMBERSHIP: MembershipIcon,
   COURSE: CourseIcon,
   COACHING: CoachingIcon,
   CONSULTING: ConsultingIcon,
   FREE: FreeIcon,
+  OTHER: OtherIcon,
 } as const;

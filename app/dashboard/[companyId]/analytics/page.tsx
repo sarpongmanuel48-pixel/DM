@@ -1,4 +1,6 @@
+import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getCreatorByCompanyId } from "@/lib/whop/dashboard-auth";
 import { daysAgo } from "@/lib/dates";
 import { VisitsChart } from "@/components/dashboard/VisitsChart";
 
@@ -14,8 +16,10 @@ const SOURCE_LABEL: Record<string, string> = {
 // source breakdown, and the honestly-labeled "Handoffs to Whop" counter.
 export default async function AnalyticsPage({ params }: PageProps<"/dashboard/[companyId]/analytics">) {
   const { companyId } = await params;
+  const creatorId = (await getCreatorByCompanyId(companyId))?.id;
+  if (!creatorId) notFound();
   const creator = await prisma.creator.findUniqueOrThrow({
-    where: { whopCompanyId: companyId },
+    where: { id: creatorId },
     include: { offers: true },
   });
 
