@@ -1,17 +1,28 @@
-// No marketing/landing screen exists in the design pass. There's also no
-// DM-hosted sign-up anymore — DM is installed as a Whop dashboard app
-// (whop.com's App Store), which is where a creator actually finds and
-// adds it; this root route has nothing to hand off to.
+import { Nav } from "@/components/landing/Nav";
+import { Hero } from "@/components/landing/Hero";
+import { ShareAnywhere } from "@/components/landing/ShareAnywhere";
+import { IntegrationsMarquee } from "@/components/landing/IntegrationsMarquee";
+import { FeaturesBento } from "@/components/landing/FeaturesBento";
+import { PreviewSandbox } from "@/components/landing/PreviewSandbox";
+import { Faq } from "@/components/landing/Faq";
+import { Pricing } from "@/components/landing/Pricing";
+import { Footer } from "@/components/landing/Footer";
+
+// Marketing page — DM is installed from Whop's App Store, not a DM-hosted
+// sign-up, so nothing here submits a form; it's the pitch that sends a
+// creator to Whop's app listing.
 export default function RootPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-canvas p-6 text-center">
-      <div className="max-w-sm">
-        <h1 className="font-display text-2xl font-bold text-ink-900">DM</h1>
-        <p className="mt-2 text-sm text-ink-500">
-          A link-in-bio storefront for Whop creators. Install it from your Whop dashboard&apos;s apps
-          list to get started.
-        </p>
-      </div>
-    </main>
+    <div className="landing overflow-x-hidden">
+      <Nav />
+      <Hero />
+      <ShareAnywhere />
+      <IntegrationsMarquee />
+      <FeaturesBento />
+      <PreviewSandbox />
+      <Faq />
+      <Pricing />
+      <Footer />
+    </div>
   );
 }
