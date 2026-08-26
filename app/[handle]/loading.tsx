@@ -1,6 +1,8 @@
+import type { CSSProperties } from "react";
+
 // 4B — skeleton while offers sync in. Next.js shows this automatically
 // while the page's data-fetching Server Component is pending.
-function Bone({ className, style }: { className?: string; style?: React.CSSProperties }) {
+function Bone({ className, style }: { className?: string; style?: CSSProperties }) {
   return <div className={className} style={{ background: "var(--canvas-soft)", ...style }} />;
 }
 
