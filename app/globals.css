@@ -492,11 +492,6 @@ a:hover { text-decoration: underline; }
 .landing a { color: var(--l-indigo); text-decoration: none; }
 .landing a:hover { color: var(--l-indigo-dark); }
 
-@keyframes landing-scroll-left { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-
-.landing-marquee-horizontal { animation: landing-scroll-left 34s linear infinite; }
-.landing-marquee-track:hover .landing-marquee-horizontal { animation-play-state: paused; }
-
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);

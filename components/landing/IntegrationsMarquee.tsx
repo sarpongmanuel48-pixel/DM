@@ -1,4 +1,11 @@
+"use client";
+
+import { useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import { siShopify, siGumroad, siPatreon, siLemonsqueezy, siKofi, siSubstack, siEtsy, type SimpleIcon } from "simple-icons";
+
+gsap.registerPlugin(useGSAP);
 
 type BrandMarkData = { hex: string; path: string; viewBox?: string };
 
@@ -42,9 +49,28 @@ function BrandMark({ mark, title }: { mark: BrandMarkData; title: string }) {
   );
 }
 
+// Matches the old `landing-scroll-left 34s` keyframe speed.
+const MARQUEE_DURATION_S = 34;
+
 export function IntegrationsMarquee() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const tweenRef = useRef<gsap.core.Tween | null>(null);
+
+  useGSAP(
+    () => {
+      tweenRef.current = gsap.to(trackRef.current, {
+        xPercent: -50,
+        duration: MARQUEE_DURATION_S,
+        repeat: -1,
+        ease: "none",
+      });
+    },
+    { scope: containerRef }
+  );
+
   return (
-    <section className="py-16 pb-24" style={{ borderTop: "1px solid var(--l-hairline-soft)" }}>
+    <section ref={containerRef} className="py-16 pb-24" style={{ borderTop: "1px solid var(--l-hairline-soft)" }}>
       <p
         className="mx-auto max-w-[640px] px-8 text-center font-bold"
         style={{ fontFamily: "var(--l-font-display)", fontSize: 24, lineHeight: 1.2, color: "var(--l-ink)" }}
@@ -52,13 +78,15 @@ export function IntegrationsMarquee() {
         Integrate your account or product from Whop, Shopify, Gumroad, Patreon, and more.
       </p>
       <div
-        className="landing-marquee-track mt-12 overflow-hidden"
+        className="mt-12 overflow-hidden"
         style={{
           maskImage: "linear-gradient(to right, transparent, #000 12%, #000 88%, transparent)",
           WebkitMaskImage: "linear-gradient(to right, transparent, #000 12%, #000 88%, transparent)",
         }}
+        onMouseEnter={() => tweenRef.current?.pause()}
+        onMouseLeave={() => tweenRef.current?.play()}
       >
-        <div className="landing-marquee-horizontal flex w-max gap-12">
+        <div ref={trackRef} className="flex w-max gap-12">
           {[0, 1].map((rep) => (
             <div key={rep} className="flex items-center gap-12 pr-12">
               {PLATFORMS.map((platform) => (
