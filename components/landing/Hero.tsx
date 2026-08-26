@@ -1,43 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SELF_SERVE_SIGNUP_SUPPORTED, WHOP_APP_STORE_URL } from "@/lib/self-serve-signup";
 
-// Each column's 8 skeleton cards are two repeats of a 4-card pattern, so the
-// -50% translateY loop lands back on an identical frame.
-const COLUMNS: { speedS: number; widths: [number, number][] }[] = [
-  {
-    speedS: 15,
-    widths: [
-      [72, 46],
-      [60, 40],
-      [80, 52],
-      [66, 44],
-    ],
-  },
-  {
-    speedS: 19,
-    widths: [
-      [54, 38],
-      [76, 48],
-      [64, 42],
-      [70, 50],
-    ],
-  },
-  {
-    speedS: 16.5,
-    widths: [
-      [68, 44],
-      [56, 36],
-      [78, 50],
-      [62, 46],
-    ],
-  },
+// Persona mockups (Jordan Reyes, Maya Rivera, Alex Chen, Sam Okafor, Riley
+// Park, +2 more) are being generated separately and aren't ready yet.
+// Dropping their file paths in here — in this order — is the only change
+// needed once they exist; tiles beyond the array's length fall back to
+// the placeholder card look.
+const HERO_COLLAGE_IMAGES: string[] = [];
+
+// A loose grid mosaic, not a scattered/rotated collage — per the reference
+// screenshot, tiles are axis-aligned and tiled (uneven spans, small gaps)
+// rather than independently rotated. One tile is the "focus" tile: full
+// detail, fully sharp. Every other tile reads as out-of-focus background —
+// blurred, flatter — the same relationship the reference's one crisp photo
+// has to its softened pastel neighbors. Opacity still animates in on mount,
+// staggered per tile, per the confirmed reference video — that part is
+// unchanged, only the static composition is.
+const TILE_LAYOUT: { column: string; row: string; focus?: boolean; tint?: string }[] = [
+  { column: "1 / 2", row: "1 / 2", tint: "var(--l-hairline)" },
+  { column: "2 / 4", row: "1 / 2", tint: "rgba(109, 99, 234, 0.14)" },
+  { column: "1 / 2", row: "2 / 4", tint: "var(--l-hairline)" },
+  { column: "2 / 3", row: "2 / 4", focus: true },
+  { column: "3 / 4", row: "2 / 3", tint: "rgba(79, 70, 229, 0.12)" },
+  { column: "3 / 4", row: "3 / 4", tint: "var(--l-hairline)" },
+  // Full-width, not "1 / 3" — closes the composition against both outer
+  // edges instead of stopping short under the right column.
+  { column: "1 / 4", row: "4 / 5", tint: "rgba(109, 99, 234, 0.1)" },
 ];
+
+const FADE_IN_STAGGER_MS = 130;
 
 export function Hero() {
   const [handle, setHandle] = useState("");
   const ctaLabel = handle.trim() ? "Claim your account" : "Get started free";
+
+  // Starts false on every mount (server-rendered and on hydration alike),
+  // then flips true a frame later — so the fade-in replays on every page
+  // load/reload rather than firing once per browser.
+  const [collageVisible, setCollageVisible] = useState(false);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setCollageVisible(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   const ctaClassName =
     "cursor-pointer rounded-xl border-none px-5 py-3.5 text-sm leading-none font-semibold text-white transition-colors hover:[background:var(--l-indigo-dark)]";
@@ -124,40 +130,69 @@ export function Hero() {
       </div>
 
       <div
-        className="relative h-[520px] overflow-hidden"
-        style={{
-          maskImage: "linear-gradient(to bottom, transparent, #000 16%, #000 84%, transparent)",
-          WebkitMaskImage: "linear-gradient(to bottom, transparent, #000 16%, #000 84%, transparent)",
-        }}
+        className="grid h-[520px] overflow-hidden"
+        style={{ gridTemplateColumns: "repeat(3, 1fr)", gridTemplateRows: "repeat(4, 1fr)", gap: 12 }}
       >
-        <div className="grid h-full grid-cols-3 gap-3">
-          {COLUMNS.map((col, i) => (
-            <div
-              key={i}
-              className="landing-marquee-vertical flex flex-col gap-3"
-              style={{ animationDuration: `${col.speedS}s` }}
-            >
-              {[...col.widths, ...col.widths].map(([w1, w2], j) => (
-                <SkeletonCard key={j} w1={w1} w2={w2} />
-              ))}
-            </div>
-          ))}
-        </div>
+        {TILE_LAYOUT.map((tile, i) => (
+          <div
+            key={i}
+            className="transition-opacity ease-out"
+            style={{
+              gridColumn: tile.column,
+              gridRow: tile.row,
+              opacity: collageVisible ? 1 : 0,
+              transitionDuration: "700ms",
+              transitionDelay: `${i * FADE_IN_STAGGER_MS}ms`,
+            }}
+          >
+            <CollageTile src={HERO_COLLAGE_IMAGES[i]} focus={tile.focus} tint={tile.tint} />
+          </div>
+        ))}
       </div>
     </section>
   );
 }
 
-function SkeletonCard({ w1, w2 }: { w1: number; w2: number }) {
+// The frame (border + shadow) stays fully opaque on every tile, focus or
+// not — a real, visible card boundary regardless of what's inside it.
+const TILE_FRAME_STYLE = {
+  background: "var(--l-canvas)",
+  boxShadow: "0 1px 2px rgba(17, 17, 17, 0.04), 0 4px 12px rgba(17, 17, 17, 0.05)",
+  border: "1px solid rgba(17, 17, 17, 0.05)",
+};
+
+// Scaled up before blurring so the blur's outward bleed lands on the
+// (overflow-hidden) frame's own edge instead of leaving a hard seam where
+// the unblurred rectangle used to end.
+const BACKGROUND_TILE_STYLE = { filter: "blur(6px)", transform: "scale(1.15)" };
+
+function CollageTile({ src, focus, tint }: { src?: string; focus?: boolean; tint?: string }) {
+  if (src) {
+    return (
+      <div className="size-full overflow-hidden rounded-lg" style={TILE_FRAME_STYLE}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={src} alt="" className="size-full object-cover" style={focus ? undefined : BACKGROUND_TILE_STYLE} />
+      </div>
+    );
+  }
+
+  if (focus) {
+    // The one in-focus tile — full detail, fully sharp, no blur.
+    return (
+      <div className="flex size-full flex-col gap-2 overflow-hidden rounded-lg p-3" style={TILE_FRAME_STYLE}>
+        <div className="size-[26px] rounded-full" style={{ background: "var(--l-surface-card)" }} />
+        <div className="h-[6px] w-[70%] rounded-[3px]" style={{ background: "var(--l-stone)" }} />
+        <div className="h-[6px] w-[45%] rounded-[3px]" style={{ background: "var(--l-hairline-soft)" }} />
+        <div className="mt-auto h-5 rounded-md" style={{ background: "var(--l-indigo)" }} />
+      </div>
+    );
+  }
+
+  // Background tile — a flat tint, blurred. Skeleton-bar detail would just
+  // get lost to the blur anyway, so there's no point drawing it.
   return (
-    <div
-      className="flex flex-col gap-2 rounded-lg p-3"
-      style={{ background: "var(--l-canvas)", boxShadow: "var(--l-shadow-card)" }}
-    >
-      <div className="size-[26px] rounded-full" style={{ background: "var(--l-surface-card)" }} />
-      <div className="h-[6px] rounded-[3px]" style={{ width: `${w1}%`, background: "var(--l-stone)" }} />
-      <div className="h-[6px] rounded-[3px]" style={{ width: `${w2}%`, background: "var(--l-hairline-soft)" }} />
-      <div className="h-5 rounded-md" style={{ background: "var(--l-indigo)" }} />
+    <div className="size-full overflow-hidden rounded-lg" style={TILE_FRAME_STYLE}>
+      <div className="size-full" style={{ background: tint, ...BACKGROUND_TILE_STYLE }} />
     </div>
   );
 }
