@@ -492,6 +492,11 @@ a:hover { text-decoration: underline; }
 .landing a { color: var(--l-indigo); text-decoration: none; }
 .landing a:hover { color: var(--l-indigo-dark); }
 
+/* Scroll functionality stays native (wheel/touch/chaining all still work) —
+   this only hides the visual scrollbar gutter on the decorative photo wall. */
+.hero-photo-wall { scrollbar-width: none; -ms-overflow-style: none; }
+.hero-photo-wall::-webkit-scrollbar { display: none; }
+
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
