@@ -58,7 +58,14 @@ export function SaveIdentityForm({
         <span className="qbx-label">
           Bio <span className="qbx-label__opt">140 characters</span>
         </span>
-        <textarea name="bio" defaultValue={defaultBio} maxLength={140} className="qbx-textarea" style={{ minHeight: 64 }} />
+        <textarea
+          name="bio"
+          defaultValue={defaultBio}
+          maxLength={140}
+          placeholder="Who you help → what makes you different → what you want them to do"
+          className="qbx-textarea"
+          style={{ minHeight: 64 }}
+        />
       </div>
       <button type="submit" className="qbx-btn qbx-btn--primary qbx-btn--md" style={{ alignSelf: "flex-start" }}>
         Save

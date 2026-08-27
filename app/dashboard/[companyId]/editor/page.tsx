@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCreatorByCompanyId } from "@/lib/whop/dashboard-auth";
+import { DEFAULT_ACCENT_COLOR } from "@/lib/creator-accent";
+import { AppearanceForm } from "@/components/dashboard/AppearanceForm";
 import { EditorOfferList } from "@/components/dashboard/EditorOfferList";
 import { LinksEditor } from "@/components/dashboard/LinksEditor";
 import { LivePreviewPane } from "@/components/dashboard/LivePreviewPane";
@@ -42,6 +44,8 @@ export default async function EditorPage({ params }: PageProps<"/dashboard/[comp
           defaultAvatarUrl={creator.avatarUrl}
         />
 
+        <AppearanceForm creatorId={creator.id} accentColor={creator.accentColor ?? DEFAULT_ACCENT_COLOR} />
+
         <div className="rounded-lg border border-hairline bg-white p-5">
           <div className="mb-3.5 flex items-center justify-between">
             <h2 className="text-[13.5px] font-semibold text-ink-900">Offers</h2>
@@ -69,6 +73,7 @@ export default async function EditorPage({ params }: PageProps<"/dashboard/[comp
 
       <LivePreviewPane
         creator={{ name: creator.name, tagline: creator.tagline, bio: creator.bio, avatarUrl: creator.avatarUrl }}
+        accentColor={creator.accentColor ?? DEFAULT_ACCENT_COLOR}
         featured={featured ? toCard(featured) : undefined}
         rest={rest.map(toCard)}
       />

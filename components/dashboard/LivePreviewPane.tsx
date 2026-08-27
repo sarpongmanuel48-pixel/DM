@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { OfferCard, type OfferCardData } from "@/components/offer-card/OfferCard";
 
 interface PreviewCreator {
@@ -12,10 +13,12 @@ interface PreviewCreator {
  * identity fields update once the form above is saved). */
 export function LivePreviewPane({
   creator,
+  accentColor,
   featured,
   rest,
 }: {
   creator: PreviewCreator;
+  accentColor: string;
   featured?: OfferCardData;
   rest: OfferCardData[];
 }) {
@@ -31,7 +34,25 @@ export function LivePreviewPane({
       <div className="text-[10px] font-semibold uppercase tracking-widest text-ink-400">Live preview</div>
       <div
         className="overflow-y-auto rounded-2xl border p-3.5"
-        style={{ borderColor: "var(--hairline-strong)", background: "var(--canvas)", height: 560 }}
+        style={
+          {
+            borderColor: "var(--hairline-strong)",
+            background: "var(--canvas)",
+            height: 560,
+            // Creator's chosen color, reflected the instant a swatch is
+            // picked — same instant-reactivity principle as the handle
+            // field and the marketing sandbox. Locally re-derives --accent
+            // (and its --accent-ink/--accent-soft companions) from it, so
+            // OfferCard and the "Start here" heading — which already read
+            // those three vars via .qbx-btn--accent/.qbx-badge--accent —
+            // pick up the creator's color with no changes of their own;
+            // see app/[handle]/page.tsx for the matching storefront wiring.
+            "--creator-accent": accentColor,
+            "--accent": "var(--creator-accent)",
+            "--accent-ink": "color-mix(in srgb, var(--accent) 80%, black)",
+            "--accent-soft": "color-mix(in srgb, var(--accent) 10%, white)",
+          } as CSSProperties
+        }
       >
         <div className="flex flex-col items-center gap-2 pb-4 pt-2 text-center">
           {creator.avatarUrl ? (

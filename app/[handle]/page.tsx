@@ -1,6 +1,8 @@
+import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { DEFAULT_ACCENT_COLOR } from "@/lib/creator-accent";
 import { OfferCard, type OfferCardData } from "@/components/offer-card/OfferCard";
 import { PreviewBanner } from "@/components/storefront/PreviewBanner";
 import { SocialLinks } from "@/components/storefront/SocialLinks";
@@ -52,8 +54,27 @@ export default async function StorefrontPage({ params }: PageProps<"/[handle]">)
     .join("")
     .toUpperCase();
 
+  const accentColor = creator.accentColor ?? DEFAULT_ACCENT_COLOR;
+
   return (
-    <main className="flex min-h-screen flex-col items-center bg-canvas">
+    <main
+      className="flex min-h-screen flex-col items-center bg-canvas"
+      style={
+        {
+          // Every CTA and price on this page renders in the creator's own
+          // color, not DM's — OfferCard and the "Start here" heading below
+          // already read --accent/--accent-ink/--accent-soft (via
+          // .qbx-btn--accent/.qbx-badge--accent/qbx-avatar), so re-deriving
+          // those three from --creator-accent here, scoped to this page
+          // root, is all the wiring either one needs. See
+          // LivePreviewPane.tsx for the matching editor-side wiring.
+          "--creator-accent": accentColor,
+          "--accent": "var(--creator-accent)",
+          "--accent-ink": "color-mix(in srgb, var(--accent) 80%, black)",
+          "--accent-soft": "color-mix(in srgb, var(--accent) 10%, white)",
+        } as CSSProperties
+      }
+    >
       {isPreview && <PreviewBanner />}
 
       <div className="flex w-full max-w-md flex-col items-center gap-3 px-5 pt-7">

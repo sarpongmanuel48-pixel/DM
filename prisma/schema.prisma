@@ -74,13 +74,20 @@ model Creator {
   // at all, and it isn't part of what makes a Connection unique.
   whopUserId String?
 
-  handle    String  @unique
-  name      String
-  tagline   String?
-  bio       String?
-  avatarUrl String?
+  handle      String  @unique
+  name        String
+  tagline     String?
+  bio         String?
+  avatarUrl   String?
+  // Hex, e.g. "#4F46E5" — rendered as --creator-accent on the storefront and
+  // live preview (see app/[handle]/page.tsx, LivePreviewPane.tsx). Null
+  // falls back to DEFAULT_ACCENT_COLOR (lib/creator-accent.ts) — the exact
+  // #e2680c this repo's own CSS already uses as a fixed "creator accent"
+  // (see app/globals.css's header comment), so an unconfigured creator's
+  // page looks identical to before this field existed.
+  accentColor String?
   // Read-only, populated from Whop's account data on sync — not creator-editable.
-  verified  Boolean @default(false)
+  verified    Boolean @default(false)
 
   featuredOfferId String? @unique
   featuredOffer   Offer?  @relation("FeaturedOffer", fields: [featuredOfferId], references: [id], onDelete: SetNull)
