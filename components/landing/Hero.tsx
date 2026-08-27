@@ -121,7 +121,14 @@ export function Hero() {
         style={{ background: "linear-gradient(100deg, var(--l-canvas) 0%, var(--l-canvas) 42%, rgba(255,255,255,0.55) 68%, rgba(255,255,255,0.1) 100%)" }}
       />
 
-      <div className="relative z-10 mx-auto w-full max-w-[1160px] px-8 py-24">
+      {/* pointer-events-none here, not on the wall — this wrapper's own
+          bounding box (up to 1160px wide) was capturing hover/wheel input
+          over almost the entire hero even where there's no visible text,
+          since it's a *sibling* of the wall, not an ancestor, so the
+          browser's scroll-chaining walk never reached the wall's overflow
+          from there. Only the actually-interactive controls opt back in
+          via pointer-events-auto. */}
+      <div className="pointer-events-none relative z-10 mx-auto w-full max-w-[1160px] px-8 py-24">
         <div className="max-w-[600px]">
           <h1
             className="m-0 font-bold"
@@ -156,7 +163,7 @@ export function Hero() {
             {SELF_SERVE_SIGNUP_SUPPORTED ? (
               <>
                 <label
-                  className="flex items-center gap-0.5 rounded-xl px-4 py-3"
+                  className="pointer-events-auto flex items-center gap-0.5 rounded-xl px-4 py-3"
                   style={{ border: "1px solid var(--l-hairline)", background: "var(--l-canvas)" }}
                 >
                   <span className="text-[13px]" style={{ fontFamily: "var(--l-font-mono)", color: "var(--l-mute)" }}>
@@ -171,14 +178,14 @@ export function Hero() {
                     style={{ fontFamily: "var(--l-font-mono)", color: "var(--l-ink)" }}
                   />
                 </label>
-                <button type="button" className={ctaClassName} style={ctaStyle}>
+                <button type="button" className={`pointer-events-auto ${ctaClassName}`} style={ctaStyle}>
                   {ctaLabel}
                 </button>
               </>
             ) : (
               // No self-serve signup in this phase — DM is installed from
               // Whop's App Store. See lib/self-serve-signup.ts.
-              <a href={WHOP_APP_STORE_URL} className={`inline-block text-center ${ctaClassName}`} style={ctaStyle}>
+              <a href={WHOP_APP_STORE_URL} className={`pointer-events-auto inline-block text-center ${ctaClassName}`} style={ctaStyle}>
                 Install on Whop
               </a>
             )}
