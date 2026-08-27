@@ -4,7 +4,7 @@ import { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { CustomEase } from "gsap/CustomEase";
-import { SELF_SERVE_SIGNUP_SUPPORTED, WHOP_APP_STORE_URL } from "@/lib/self-serve-signup";
+import { PrimaryCta } from "./PrimaryCta";
 
 gsap.registerPlugin(useGSAP, CustomEase);
 
@@ -14,7 +14,7 @@ const BADGES = ["IG", "TT", "YT", "X"] as const;
 // instead of a `transform` string — GSAP tweens x/y/rotation/scale
 // independently, not a shorthand transform string.
 const GEO = [
-  { x: 0, y: 0, rotation: 0, scale: 1, zIndex: 4, barBg: "var(--l-indigo)" },
+  { x: 0, y: 0, rotation: 0, scale: 1, zIndex: 4, barBg: "var(--l-gradient-dark)" },
   { x: -34, y: 14, rotation: -7, scale: 0.95, zIndex: 3, barBg: "var(--l-hairline-soft)" },
   { x: 34, y: 26, rotation: 7, scale: 0.9, zIndex: 2, barBg: "var(--l-hairline-soft)" },
   { x: -8, y: 40, rotation: -2, scale: 0.86, zIndex: 1, barBg: "var(--l-hairline-soft)" },
@@ -95,24 +95,7 @@ export function ShareAnywhere() {
         <p className="mt-4 max-w-[400px] text-[15px] leading-normal" style={{ color: "var(--l-mute)" }}>
           One dm.to link works in every bio, every caption, every platform.
         </p>
-        {SELF_SERVE_SIGNUP_SUPPORTED ? (
-          <button
-            type="button"
-            className="mt-7 cursor-pointer rounded-xl border-none px-5 py-3 text-sm leading-none font-semibold text-white hover:[background:var(--l-indigo-dark)]"
-            style={{ background: "var(--l-gradient-primary)" }}
-          >
-            Get started free
-          </button>
-        ) : (
-          // No self-serve signup in this phase — see lib/self-serve-signup.ts.
-          <a
-            href={WHOP_APP_STORE_URL}
-            className="mt-7 inline-block cursor-pointer rounded-xl border-none px-5 py-3 text-sm leading-none font-semibold text-white hover:[background:var(--l-indigo-dark)]"
-            style={{ background: "var(--l-gradient-primary)" }}
-          >
-            Install on Whop
-          </a>
-        )}
+        <PrimaryCta className="mt-7">Get started free</PrimaryCta>
       </div>
 
       <div className="flex flex-col items-center gap-7">

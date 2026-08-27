@@ -4,7 +4,8 @@ import { useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { Pencil } from "lucide-react";
-import { SELF_SERVE_SIGNUP_SUPPORTED, WHOP_APP_STORE_URL } from "@/lib/self-serve-signup";
+import { SELF_SERVE_SIGNUP_SUPPORTED } from "@/lib/self-serve-signup";
+import { PrimaryCta } from "./PrimaryCta";
 
 gsap.registerPlugin(useGSAP);
 
@@ -52,10 +53,6 @@ export function Hero() {
     },
     { scope: backgroundRef }
   );
-
-  const ctaClassName =
-    "cursor-pointer rounded-xl border-none px-5 py-3.5 text-sm leading-none font-semibold text-white transition-colors hover:[background:var(--l-indigo-dark)]";
-  const ctaStyle = { background: "var(--l-gradient-primary)" };
 
   return (
     <section id="top" className="relative isolate flex min-h-[100dvh] items-center overflow-hidden">
@@ -160,35 +157,25 @@ export function Hero() {
           </p>
 
           <div className="mt-8 flex max-w-[420px] flex-col gap-3">
-            {SELF_SERVE_SIGNUP_SUPPORTED ? (
-              <>
-                <label
-                  className="pointer-events-auto flex items-center gap-0.5 rounded-xl px-4 py-3"
-                  style={{ border: "1px solid var(--l-hairline)", background: "var(--l-canvas)" }}
-                >
-                  <span className="text-[13px]" style={{ fontFamily: "var(--l-font-mono)", color: "var(--l-mute)" }}>
-                    dm.to/
-                  </span>
-                  <input
-                    type="text"
-                    value={handle}
-                    onChange={(e) => setHandle(e.target.value)}
-                    placeholder="yourname"
-                    className="flex-1 border-none bg-transparent p-0 text-[13px] outline-none"
-                    style={{ fontFamily: "var(--l-font-mono)", color: "var(--l-ink)" }}
-                  />
-                </label>
-                <button type="button" className={`pointer-events-auto ${ctaClassName}`} style={ctaStyle}>
-                  {ctaLabel}
-                </button>
-              </>
-            ) : (
-              // No self-serve signup in this phase — DM is installed from
-              // Whop's App Store. See lib/self-serve-signup.ts.
-              <a href={WHOP_APP_STORE_URL} className={`pointer-events-auto inline-block text-center ${ctaClassName}`} style={ctaStyle}>
-                Install on Whop
-              </a>
+            {SELF_SERVE_SIGNUP_SUPPORTED && (
+              <label
+                className="pointer-events-auto flex items-center gap-0.5 rounded-xl px-4 py-3"
+                style={{ border: "1px solid var(--l-hairline)", background: "var(--l-canvas)" }}
+              >
+                <span className="text-[13px]" style={{ fontFamily: "var(--l-font-mono)", color: "var(--l-mute)" }}>
+                  dm.to/
+                </span>
+                <input
+                  type="text"
+                  value={handle}
+                  onChange={(e) => setHandle(e.target.value)}
+                  placeholder="yourname"
+                  className="flex-1 border-none bg-transparent p-0 text-[13px] outline-none"
+                  style={{ fontFamily: "var(--l-font-mono)", color: "var(--l-ink)" }}
+                />
+              </label>
             )}
+            <PrimaryCta className="pointer-events-auto">{ctaLabel}</PrimaryCta>
           </div>
 
           <div className="mt-7 flex items-center gap-6 text-[13px]" style={{ color: "var(--l-ink)" }}>

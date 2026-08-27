@@ -342,8 +342,21 @@ a:hover { text-decoration: underline; }
 .qbx-btn--sm { font-size: var(--text-body-sm); padding: 8px 16px; }
 .qbx-btn--md { font-size: var(--text-body-md); padding: 11px 22px; }
 .qbx-btn--lg { font-size: var(--text-body-lg); padding: 14px 28px; }
-.qbx-btn--primary { --_bg: var(--action-primary); --_fg: var(--action-on-primary); }
-.qbx-btn--primary:hover { --_bg: var(--action-primary-hover); }
+/* Primary is black everywhere now, not --action-primary blue — the
+   landing page's v4 monochrome direction extended app-wide. Padding and
+   radius are set directly here (not left to --sm/--md/--lg or the base
+   --radius-full) so every primary button is the same near-square size and
+   shape regardless of which size modifier it's paired with — matching
+   .landing-button-primary below. The black value is a literal, not a var,
+   since the --l-* tokens it matches are scoped to .landing and aren't
+   available here. */
+.qbx-btn--primary {
+  --_bg: linear-gradient(135deg, #2b2a38 0%, #111111 100%);
+  --_fg: #ffffff;
+  padding: 12px 20px;
+  border-radius: 1px;
+}
+.qbx-btn--primary:hover { --_bg: #000000; }
 .qbx-btn--secondary { --_bg: var(--surface-card); --_fg: var(--text-strong); --_bd: var(--border-strong); box-shadow: var(--shadow-sm); }
 .qbx-btn--secondary:hover { --_bg: var(--surface-sunken); }
 .qbx-btn--ghost { --_bg: transparent; --_fg: var(--text-body); }
@@ -457,10 +470,14 @@ a:hover { text-decoration: underline; }
 
 /* ----------------------------------------------------------------
    Landing page (marketing, "/") — ported from the Claude Design
-   canvas `DM Landing Page v3.dc.html`. Deliberately its own token
-   set, scoped under `.landing`: the marketing page uses an indigo
-   accent + monochrome grays that don't match the dashboard's
-   navy/blue/orange system above, so these never touch :root.
+   canvas `DM Landing Page v3.dc.html`, since updated to the v4
+   monochrome system (DESIGN-dm-v4.md): DM's own chrome carries no
+   chromatic color at all now — accent is literally black. The one thing
+   v4 explicitly leaves untouched is --creator-accent (a published
+   storefront still renders in whatever color a creator picks for
+   themselves; see lib/creator-accent.ts) — this block governs DM's own
+   marketing chrome only, still scoped under `.landing` so it never
+   touches :root or the dashboard's own navy/blue/orange system above.
    ---------------------------------------------------------------- */
 .landing {
   --l-ink: #111111;
@@ -474,10 +491,12 @@ a:hover { text-decoration: underline; }
   --l-canvas: #ffffff;
   --l-surface-soft: #fafafc;
   --l-surface-card: #f4f3f8;
-  --l-indigo: #4f46e5;
-  --l-indigo-light: #6d63ea;
-  --l-indigo-dark: #3730a3;
-  --l-gradient-primary: linear-gradient(135deg, #6d63ea 0%, #4f46e5 55%, #3730a3 100%);
+  /* v4's one non-neutral value, and it isn't really a color: accent is
+     black. Nothing here is chromatic anymore — no replacement hue, just
+     these three, plus the existing --l-ink for everything static. */
+  --l-accent: #111111;
+  --l-accent-pressed: #000000;
+  --l-on-accent: #ffffff;
   --l-gradient-dark: linear-gradient(135deg, #2b2a38 0%, #111111 100%);
   --l-shadow-card: 0 1px 2px rgba(17, 17, 17, 0.04), 0 2px 8px rgba(17, 17, 17, 0.06);
   --l-shadow-float: 0 2px 4px rgba(17, 17, 17, 0.06), 0 8px 24px rgba(17, 17, 17, 0.08);
@@ -489,8 +508,43 @@ a:hover { text-decoration: underline; }
   color: var(--l-body);
   font-family: var(--l-font-sans);
 }
-.landing a { color: var(--l-indigo); text-decoration: none; }
-.landing a:hover { color: var(--l-indigo-dark); }
+/* text-link: the only other place accent appears, since it's the
+   generic default for any actual inline link — black text can no longer
+   be told apart from body copy by color alone, so the underline here is
+   load-bearing, not decorative. Nav/footer links are utility navigation,
+   not inline text links, and override this with their own muted style. */
+.landing a { color: var(--l-accent); text-decoration: underline; }
+.landing a:hover { color: var(--l-accent-pressed); }
+
+/* One shared primary-CTA treatment for the whole marketing page — see
+   components/landing/PrimaryCta.tsx, the component every landing CTA now
+   goes through instead of five independently-duplicated className/style
+   constants (that's how they drifted to three different paddings).
+   Specificity (.landing + this class = two classes) beats `.landing a`
+   (one class + the `a` tag) so the underline above doesn't leak onto the
+   anchor-tag variant of this button. */
+.landing .landing-button-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 1px; /* rounded-xl (16px) cut ~95% — a deliberately
+                          near-square corner, not a smaller rounded one.
+                          Scoped to this class only, not --radius-xl
+                          itself (that still governs cards etc). */
+  background: var(--l-gradient-dark);
+  color: var(--l-on-accent);
+  font-family: var(--l-font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.landing .landing-button-primary:hover { background: var(--l-accent-pressed); }
 
 /* Scroll functionality stays native (wheel/touch/chaining all still work) —
    this only hides the visual scrollbar gutter on the decorative photo wall. */

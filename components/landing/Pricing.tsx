@@ -1,4 +1,5 @@
 import { SELF_SERVE_SIGNUP_SUPPORTED, WHOP_APP_STORE_URL } from "@/lib/self-serve-signup";
+import { PrimaryCta } from "./PrimaryCta";
 
 function PlanCard({
   name,
@@ -55,15 +56,13 @@ function PlanCard({
           </span>
         ))}
       </div>
-      {SELF_SERVE_SIGNUP_SUPPORTED ? (
+      {cta.primary ? (
+        <PrimaryCta className="mt-auto">{cta.label}</PrimaryCta>
+      ) : SELF_SERVE_SIGNUP_SUPPORTED ? (
         <button
           type="button"
           className="mt-auto cursor-pointer rounded-xl border-none py-3 text-sm font-semibold"
-          style={
-            cta.primary
-              ? { background: "var(--l-gradient-primary)", color: "#fff" }
-              : { background: "var(--l-canvas)", color: "var(--l-ink)", border: "1px solid var(--l-hairline)" }
-          }
+          style={{ background: "var(--l-canvas)", color: "var(--l-ink)", border: "1px solid var(--l-hairline)" }}
         >
           {cta.label}
         </button>
@@ -74,11 +73,7 @@ function PlanCard({
         <a
           href={WHOP_APP_STORE_URL}
           className="mt-auto block rounded-xl py-3 text-center text-sm font-semibold"
-          style={
-            cta.primary
-              ? { background: "var(--l-gradient-primary)", color: "#fff" }
-              : { background: "var(--l-canvas)", color: "var(--l-ink)", border: "1px solid var(--l-hairline)" }
-          }
+          style={{ background: "var(--l-canvas)", color: "var(--l-ink)", border: "1px solid var(--l-hairline)", textDecoration: "none" }}
         >
           Install on Whop
         </a>

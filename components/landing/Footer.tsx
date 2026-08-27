@@ -40,7 +40,12 @@ export function Footer() {
               {col.heading}
             </div>
             {col.links.map((link) => (
-              <a key={link.label} href={link.href} className="text-[13px]" style={{ color: "var(--l-indigo)" }}>
+              <a
+                key={link.label}
+                href={link.href}
+                className="text-[13px]"
+                style={{ color: "var(--l-mute)", textDecoration: "none" }}
+              >
                 {link.label}
               </a>
             ))}

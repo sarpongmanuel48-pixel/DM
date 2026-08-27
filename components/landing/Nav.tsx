@@ -1,8 +1,4 @@
-import { SELF_SERVE_SIGNUP_SUPPORTED, WHOP_APP_STORE_URL } from "@/lib/self-serve-signup";
-
-const ctaClassName =
-  "cursor-pointer rounded-xl border-none px-4 py-2 text-sm leading-none font-semibold text-white transition-colors hover:[background:var(--l-indigo-dark)]";
-const ctaStyle = { background: "var(--l-gradient-primary)" };
+import { PrimaryCta } from "./PrimaryCta";
 
 export function Nav() {
   return (
@@ -14,25 +10,18 @@ export function Nav() {
         DM
       </span>
       <div className="flex items-center gap-7 text-sm font-medium">
-        <a href="#top" className="font-semibold" style={{ color: "var(--l-mute)" }}>
+        {/* Utility navigation, not inline text links — explicitly no
+            underline, unlike the .landing default a{} now carries. */}
+        <a href="#top" className="font-semibold" style={{ color: "var(--l-mute)", textDecoration: "none" }}>
           Home
         </a>
-        <a href="#features" style={{ color: "var(--l-mute)" }}>
+        <a href="#features" style={{ color: "var(--l-mute)", textDecoration: "none" }}>
           Features
         </a>
-        <a href="#pricing" style={{ color: "var(--l-mute)" }}>
+        <a href="#pricing" style={{ color: "var(--l-mute)", textDecoration: "none" }}>
           Pricing
         </a>
-        {SELF_SERVE_SIGNUP_SUPPORTED ? (
-          <button type="button" className={ctaClassName} style={ctaStyle}>
-            Get started free
-          </button>
-        ) : (
-          // No self-serve signup in this phase — see lib/self-serve-signup.ts.
-          <a href={WHOP_APP_STORE_URL} className={`inline-block text-center ${ctaClassName}`} style={ctaStyle}>
-            Install on Whop
-          </a>
-        )}
+        <PrimaryCta>Get started free</PrimaryCta>
       </div>
     </nav>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { SELF_SERVE_SIGNUP_SUPPORTED, WHOP_APP_STORE_URL } from "@/lib/self-serve-signup";
+import { PrimaryCta } from "./PrimaryCta";
 
 const DEFAULT_LINES = ["My Notion template", "Coaching call", "Newsletter"];
 const ROW_CAP = 4;
@@ -51,24 +51,7 @@ export function PreviewSandbox() {
                 </div>
               ))}
             </div>
-            {SELF_SERVE_SIGNUP_SUPPORTED ? (
-              <button
-                type="button"
-                className="mt-4 w-full cursor-pointer rounded-xl border-none py-3.5 text-sm leading-none font-semibold text-white hover:[background:var(--l-indigo-dark)]"
-                style={{ background: "var(--l-gradient-primary)" }}
-              >
-                Claim your bio
-              </button>
-            ) : (
-              // No self-serve signup in this phase — see lib/self-serve-signup.ts.
-              <a
-                href={WHOP_APP_STORE_URL}
-                className="mt-4 block w-full cursor-pointer rounded-xl border-none py-3.5 text-center text-sm leading-none font-semibold text-white hover:[background:var(--l-indigo-dark)]"
-                style={{ background: "var(--l-gradient-primary)" }}
-              >
-                Install on Whop
-              </a>
-            )}
+            <PrimaryCta className="mt-4 w-full">Claim your bio</PrimaryCta>
           </div>
           <div className="max-w-[440px]">
             <label className="mb-2.5 block text-xs font-medium" style={{ color: "var(--l-mute)" }}>
