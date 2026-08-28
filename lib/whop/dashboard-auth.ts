@@ -86,6 +86,17 @@ export async function requireCompanyAdmin(
   companyId: string,
   requestHeaders: Headers,
 ): Promise<{ whopUserId: string }> {
+  // Local-dev-only bypass, safe by construction rather than by remembering
+  // to unset something: both conditions are required, and neither can hold
+  // in a real deployment. NODE_ENV is "development" only under `next dev` —
+  // never in a production build/start — and "dev-test" isn't a real Whop
+  // company id (those are "biz_..."), so this stays inert for every actual
+  // request even if NODE_ENV were somehow misconfigured. See prisma/seed.ts
+  // for the Creator/Connection row this id resolves to.
+  if (process.env.NODE_ENV === "development" && companyId === "dev-test") {
+    return { whopUserId: "dev-test-user" };
+  }
+
   const { userId } = await verifyWhopUserToken(requestHeaders);
 
   // {id, resource_id} as a single object — matches the installed SDK's
