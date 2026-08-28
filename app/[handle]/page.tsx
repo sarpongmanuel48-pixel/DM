@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_ACCENT_COLOR } from "@/lib/creator-accent";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { OfferCard, type OfferCardData } from "@/components/offer-card/OfferCard";
 import { PreviewBanner } from "@/components/storefront/PreviewBanner";
 import { SocialLinks } from "@/components/storefront/SocialLinks";
@@ -63,15 +64,19 @@ export default async function StorefrontPage({ params }: PageProps<"/[handle]">)
         {
           // Every CTA and price on this page renders in the creator's own
           // color, not DM's — OfferCard and the "Start here" heading below
-          // already read --accent/--accent-ink/--accent-soft (via
-          // .qbx-btn--accent/.qbx-badge--accent/qbx-avatar), so re-deriving
-          // those three from --creator-accent here, scoped to this page
-          // root, is all the wiring either one needs. See
-          // LivePreviewPane.tsx for the matching editor-side wiring.
+          // read --accent/--accent-ink/--accent-soft (still true for the
+          // few things not yet migrated off qbx-*) *and*, since OfferCard's
+          // Button/Badge now come from shadcn/ui, --primary/--primary-
+          // foreground (what Button/Badge actually read). Both pairs get
+          // re-derived from --creator-accent here, scoped to this page
+          // root. See LivePreviewPane.tsx for the matching editor-side
+          // wiring — OfferCard renders there too, under the same remap.
           "--creator-accent": accentColor,
           "--accent": "var(--creator-accent)",
           "--accent-ink": "color-mix(in srgb, var(--accent) 80%, black)",
           "--accent-soft": "color-mix(in srgb, var(--accent) 10%, white)",
+          "--primary": "var(--creator-accent)",
+          "--primary-foreground": "#ffffff",
         } as CSSProperties
       }
     >
@@ -87,7 +92,14 @@ export default async function StorefrontPage({ params }: PageProps<"/[handle]">)
             style={{ width: 84, height: 84, boxShadow: "0 0 0 3px #fff, 0 0 0 4px var(--hairline)" }}
           />
         ) : (
-          <div className="qbx-avatar qbx-avatar--lg qbx-avatar--ring">{initials}</div>
+          <Avatar
+            className="size-[84px] after:content-none"
+            style={{ boxShadow: "0 0 0 3px #fff, 0 0 0 4px var(--hairline)" }}
+          >
+            <AvatarFallback className="font-display text-[27px] font-bold text-[var(--accent-ink)]" style={{ background: "var(--accent-soft)" }}>
+              {initials}
+            </AvatarFallback>
+          </Avatar>
         )}
         <div className="flex flex-col items-center gap-1.5 text-center">
           <div className="font-display text-2xl font-bold tracking-tight text-ink-900">{creator.name}</div>

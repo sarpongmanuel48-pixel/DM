@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 
 interface ChecklistItem {
   label: string;
@@ -48,7 +49,7 @@ export function OnboardingChecklist({ items }: { items: ChecklistItem[] }) {
           {item.done ? (
             <span className="font-mono text-[11.5px] text-ink-300">done</span>
           ) : item.href ? (
-            <Link href={item.href} className="qbx-btn qbx-btn--utility">
+            <Link href={item.href} className={buttonVariants({ variant: "utility" })}>
               Open editor
             </Link>
           ) : null}

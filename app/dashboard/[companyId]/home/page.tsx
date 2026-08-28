@@ -8,6 +8,7 @@ import { ResyncButton } from "@/components/dashboard/ResyncButton";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { VisitsChart } from "@/components/dashboard/VisitsChart";
+import { buttonVariants } from "@/components/ui/button";
 
 // 3A (+ 4D's first-run checklist).
 export default async function DashboardHomePage({ params }: PageProps<"/dashboard/[companyId]/home">) {
@@ -78,10 +79,10 @@ export default async function DashboardHomePage({ params }: PageProps<"/dashboar
           </div>
         </div>
         <div className="flex flex-none gap-2.5">
-          <Link href={`/${creator.handle}`} className="qbx-btn qbx-btn--utility">
+          <Link href={`/${creator.handle}`} className={buttonVariants({ variant: "utility" })}>
             Preview live page
           </Link>
-          <Link href={`/dashboard/${companyId}/editor`} className="qbx-btn qbx-btn--md qbx-btn--primary">
+          <Link href={`/dashboard/${companyId}/editor`} className={buttonVariants({ variant: "default" })}>
             Edit page
           </Link>
         </div>

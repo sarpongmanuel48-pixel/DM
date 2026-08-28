@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import { OFFER_TYPE_ICON } from "@/components/offer-card/icons";
 import { formatPrice, type OfferType, type PriceUnit } from "@/lib/pricing";
 
@@ -68,16 +71,16 @@ export function EditorOfferList({ offers: initial, featuredOfferId }: { offers: 
             style={{ borderColor: isFeatured ? "var(--action-primary)" : "var(--hairline)", opacity: offer.visible ? 1 : 0.55 }}
           >
             <div className="flex flex-none flex-col gap-0.5">
-              <button type="button" onClick={() => move(i, -1)} disabled={i === 0} className="qbx-iconbtn qbx-iconbtn--ghost qbx-iconbtn--sm">
+              <Button type="button" variant="ghost" size="icon-sm" onClick={() => move(i, -1)} disabled={i === 0}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M18 15l-6-6-6 6" />
                 </svg>
-              </button>
-              <button type="button" onClick={() => move(i, 1)} disabled={i === offers.length - 1} className="qbx-iconbtn qbx-iconbtn--ghost qbx-iconbtn--sm">
+              </Button>
+              <Button type="button" variant="ghost" size="icon-sm" onClick={() => move(i, 1)} disabled={i === offers.length - 1}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M6 9l6 6 6-6" />
                 </svg>
-              </button>
+              </Button>
             </div>
 
             <span
@@ -90,23 +93,22 @@ export function EditorOfferList({ offers: initial, featuredOfferId }: { offers: 
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 <span className="text-[13.5px] font-semibold text-ink-900">{offer.name}</span>
-                {isFeatured && <span className="qbx-badge qbx-badge--brand">Featured</span>}
+                {isFeatured && <Badge variant="brand">Featured</Badge>}
               </div>
               <div className="font-mono text-[11px] text-ink-500">{formatPrice(offer.priceCents, offer.priceUnit)}</div>
             </div>
 
             {!isFeatured && (
-              <button type="button" onClick={() => makeFeatured(offer.id)} className="qbx-btn qbx-btn--utility flex-none">
+              <Button type="button" variant="utility" className="flex-none" onClick={() => makeFeatured(offer.id)}>
                 Make featured
-              </button>
+              </Button>
             )}
 
-            <label className="qbx-switch flex-none">
-              <input type="checkbox" checked={offer.visible} onChange={(e) => toggleVisible(offer.id, e.target.checked)} />
-              <span className="qbx-switch__track">
-                <span className="qbx-switch__thumb" />
-              </span>
-            </label>
+            <Switch
+              className="flex-none"
+              checked={offer.visible}
+              onCheckedChange={(checked) => toggleVisible(offer.id, checked)}
+            />
           </div>
         );
       })}

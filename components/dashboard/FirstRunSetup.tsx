@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatPrice, type OfferType, type PriceUnit } from "@/lib/pricing";
 import { isReservedHandle, isValidHandleFormat } from "@/lib/reserved-handles";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 interface StreamedOffer {
   id: string;
@@ -180,8 +182,8 @@ export function FirstRunSetup({ companyId }: { companyId: string }) {
                 ))}
               </fieldset>
 
-              <div className="qbx-field">
-                <span className="qbx-label">Your page address</span>
+              <div className="flex flex-col gap-1.5">
+                <Label>Your page address</Label>
                 <div
                   className="flex items-center overflow-hidden rounded-md border bg-white"
                   style={{ borderColor: "var(--border-strong)" }}
@@ -212,15 +214,14 @@ export function FirstRunSetup({ companyId }: { companyId: string }) {
                 </div>
               )}
 
-              <button
+              <Button
                 type="button"
                 disabled={!canPublish}
                 onClick={publish}
-                className="qbx-btn qbx-btn--lg qbx-btn--primary"
-                style={{ width: "100%" }}
+                className="w-full text-[17px]"
               >
                 {publishing ? "Publishing…" : "Publish my page"}
-              </button>
+              </Button>
             </>
           )}
         </div>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ResyncButton } from "@/components/dashboard/ResyncButton";
+import { buttonVariants } from "@/components/ui/button";
 
 // 4E — connected but the Whop account has zero published products yet.
 export function EmptyOffersOnWhop({ companyId, lastSyncedAt }: { companyId: string; lastSyncedAt: Date | null }) {
@@ -30,7 +31,7 @@ export function EmptyOffersOnWhop({ companyId, lastSyncedAt }: { companyId: stri
           </p>
         </div>
         <div className="flex gap-2.5">
-          <a href="https://whop.com" target="_blank" rel="noreferrer" className="qbx-btn qbx-btn--md qbx-btn--primary">
+          <a href="https://whop.com" target="_blank" rel="noreferrer" className={buttonVariants({ variant: "default" })}>
             Create a product on Whop
           </a>
           <ResyncButton companyId={companyId} />

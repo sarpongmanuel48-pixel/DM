@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export interface EditorLink {
   id: string;
@@ -45,32 +47,30 @@ export function LinksEditor({ companyId, links: initial }: { companyId: string; 
             <div className="text-[13px] font-medium text-ink-900">{link.label}</div>
             <div className="truncate text-[11px] text-ink-400">{link.url}</div>
           </div>
-          <button type="button" onClick={() => removeLink(link.id)} className="qbx-iconbtn qbx-iconbtn--ghost qbx-iconbtn--sm flex-none">
+          <Button type="button" variant="ghost" size="icon-sm" className="flex-none" onClick={() => removeLink(link.id)}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
               <path d="M6 6l12 12M18 6L6 18" />
             </svg>
-          </button>
+          </Button>
         </div>
       ))}
 
       <div className="flex gap-2">
-        <input
+        <Input
           value={label}
           onChange={(e) => setLabel(e.target.value)}
           placeholder="Label (e.g. YouTube)"
-          className="qbx-input"
           style={{ flex: "0 0 40%" }}
         />
-        <input
+        <Input
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://…"
-          className="qbx-input"
           style={{ flex: 1 }}
         />
-        <button type="button" onClick={addLink} className="qbx-btn qbx-btn--utility flex-none">
+        <Button type="button" variant="utility" className="flex-none" onClick={addLink}>
           Add
-        </button>
+        </Button>
       </div>
     </div>
   );

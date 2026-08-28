@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { OfferCard, type OfferCardData } from "@/components/offer-card/OfferCard";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface PreviewCreator {
   name: string;
@@ -42,15 +43,17 @@ export function LivePreviewPane({
             // Creator's chosen color, reflected the instant a swatch is
             // picked — same instant-reactivity principle as the handle
             // field and the marketing sandbox. Locally re-derives --accent
-            // (and its --accent-ink/--accent-soft companions) from it, so
-            // OfferCard and the "Start here" heading — which already read
-            // those three vars via .qbx-btn--accent/.qbx-badge--accent —
-            // pick up the creator's color with no changes of their own;
-            // see app/[handle]/page.tsx for the matching storefront wiring.
+            // (and its --accent-ink/--accent-soft companions) *and*
+            // --primary/--primary-foreground — OfferCard's Button/Badge
+            // are shadcn/ui now and read the latter, not --accent, so both
+            // pairs need to track the creator's color here; see
+            // app/[handle]/page.tsx for the matching storefront wiring.
             "--creator-accent": accentColor,
             "--accent": "var(--creator-accent)",
             "--accent-ink": "color-mix(in srgb, var(--accent) 80%, black)",
             "--accent-soft": "color-mix(in srgb, var(--accent) 10%, white)",
+            "--primary": "var(--creator-accent)",
+            "--primary-foreground": "#ffffff",
           } as CSSProperties
         }
       >
@@ -59,7 +62,11 @@ export function LivePreviewPane({
             // eslint-disable-next-line @next/next/no-img-element
             <img src={creator.avatarUrl} alt="" className="rounded-full object-cover" style={{ width: 52, height: 52 }} />
           ) : (
-            <div className="qbx-avatar qbx-avatar--md">{initials}</div>
+            <Avatar className="size-10 after:content-none">
+              <AvatarFallback className="font-display text-[15px] font-bold text-[var(--accent-ink)]" style={{ background: "var(--accent-soft)" }}>
+                {initials}
+              </AvatarFallback>
+            </Avatar>
           )}
           <div className="font-display text-[15px] font-bold tracking-tight text-ink-900">{creator.name}</div>
           {creator.tagline && <div className="text-[11px] font-medium text-accent-ink">{creator.tagline}</div>}

@@ -170,17 +170,23 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  /* shadcn's own tokens, retargeted to DM's real values instead of its
+     stock oklch palette — every new shadcn/ui component (Button, Badge,
+     Input, Textarea, Switch, Avatar) reads these, so this is what makes
+     them come in looking like qbx-* instead of shadcn's defaults. --ring
+     stays blue on purpose — matches --focus-ring above, which the earlier
+     black-button pass deliberately left untouched. */
+  --primary: #111111;
+  --primary-foreground: #ffffff;
+  --secondary: var(--surface-card);
+  --secondary-foreground: var(--text-strong);
+  --muted: var(--surface-sunken);
+  --muted-foreground: var(--text-muted);
   --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --destructive: var(--danger);
+  --border: var(--border-hairline);
+  --input: var(--border-strong);
+  --ring: var(--blue-500);
   /* DM's own tokens, not shadcn's install defaults — chart-1 is the same
      accent every other primary/active data point in the dashboard uses;
      chart-2..5 step down through the existing ink neutral ramp rather than

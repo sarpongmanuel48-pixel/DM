@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { getCreatorByCompanyId } from "@/lib/whop/dashboard-auth";
 import { getDmProCheckoutUrl } from "@/lib/whop/checkout";
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
 
 function SettingsSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -30,9 +32,9 @@ export default async function SettingsPage({ params }: PageProps<"/dashboard/[co
               Changing this breaks links you&apos;ve already shared — the old address won&apos;t redirect.
             </p>
           </div>
-          <button type="button" className="qbx-btn qbx-btn--utility flex-none">
+          <Button type="button" variant="utility" className="flex-none">
             Change
-          </button>
+          </Button>
         </div>
       </SettingsSection>
 
@@ -47,7 +49,7 @@ export default async function SettingsPage({ params }: PageProps<"/dashboard/[co
       <SettingsSection title="Custom domain">
         <div className="flex items-center justify-between gap-4">
           <p className="text-sm text-ink-700">Point your own domain at your DM page.</p>
-          <span className="qbx-badge qbx-badge--neutral">Coming soon</span>
+          <Badge variant="muted">Coming soon</Badge>
         </div>
       </SettingsSection>
 
@@ -63,7 +65,7 @@ export default async function SettingsPage({ params }: PageProps<"/dashboard/[co
             </p>
           </div>
           {dmProUrl && (
-            <a href={dmProUrl} className="qbx-btn qbx-btn--utility flex-none">
+            <a href={dmProUrl} className={buttonVariants({ variant: "utility", className: "flex-none" })}>
               Manage billing
             </a>
           )}

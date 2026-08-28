@@ -1,6 +1,10 @@
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { requireAdminForCreator } from "@/lib/whop/dashboard-auth";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 /**
  * 3B's identity fields. Avatar is a pasted image URL for this pass — real
@@ -41,35 +45,34 @@ export function SaveIdentityForm({
     <form action={save} className="flex flex-col gap-4 rounded-lg border border-hairline bg-white p-5">
       <h2 className="text-[13.5px] font-semibold text-ink-900">Identity</h2>
       <div className="grid grid-cols-2 gap-3">
-        <div className="qbx-field">
-          <span className="qbx-label">Name</span>
-          <input name="name" defaultValue={defaultName} maxLength={60} className="qbx-input" />
+        <div className="flex flex-col gap-1.5">
+          <Label>Name</Label>
+          <Input name="name" defaultValue={defaultName} maxLength={60} />
         </div>
-        <div className="qbx-field">
-          <span className="qbx-label">Tagline</span>
-          <input name="tagline" defaultValue={defaultTagline} maxLength={60} placeholder="What you're known for" className="qbx-input" />
+        <div className="flex flex-col gap-1.5">
+          <Label>Tagline</Label>
+          <Input name="tagline" defaultValue={defaultTagline} maxLength={60} placeholder="What you're known for" />
         </div>
       </div>
-      <div className="qbx-field">
-        <span className="qbx-label">Avatar URL</span>
-        <input name="avatarUrl" defaultValue={defaultAvatarUrl ?? ""} placeholder="https://…" className="qbx-input" />
+      <div className="flex flex-col gap-1.5">
+        <Label>Avatar URL</Label>
+        <Input name="avatarUrl" defaultValue={defaultAvatarUrl ?? ""} placeholder="https://…" />
       </div>
-      <div className="qbx-field">
-        <span className="qbx-label">
-          Bio <span className="qbx-label__opt">140 characters</span>
-        </span>
-        <textarea
+      <div className="flex flex-col gap-1.5">
+        <Label>
+          Bio <span className="text-xs font-normal text-[var(--text-muted)]">140 characters</span>
+        </Label>
+        <Textarea
           name="bio"
           defaultValue={defaultBio}
           maxLength={140}
           placeholder="Who you help → what makes you different → what you want them to do"
-          className="qbx-textarea"
           style={{ minHeight: 64 }}
         />
       </div>
-      <button type="submit" className="qbx-btn qbx-btn--primary qbx-btn--md" style={{ alignSelf: "flex-start" }}>
+      <Button type="submit" className="self-start text-base">
         Save
-      </button>
+      </Button>
     </form>
   );
 }

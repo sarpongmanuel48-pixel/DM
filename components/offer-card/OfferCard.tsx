@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import { OFFER_TYPE_ICON, CustomLinkIcon } from "./icons";
 import { ctaLabelFor, formatPrice, type OfferType, type PriceUnit } from "@/lib/pricing";
 
@@ -65,7 +67,7 @@ export function OfferCard({ offer, size }: { offer: OfferCardData; size: "featur
         />
         <div className="flex flex-col gap-2.5 p-4">
           <div className="flex items-center gap-2">
-            <span className="qbx-badge qbx-badge--accent">{TYPE_LABEL[offer.type]}</span>
+            <Badge variant="accent">{TYPE_LABEL[offer.type]}</Badge>
             {offer.meta && <span className="text-xs text-ink-400">{offer.meta}</span>}
           </div>
           <div className="flex flex-col gap-1">
@@ -74,7 +76,13 @@ export function OfferCard({ offer, size }: { offer: OfferCardData; size: "featur
           </div>
           <div className="mt-1 flex items-center gap-3">
             <PriceBlock offer={offer} />
-            <span className="qbx-btn qbx-btn--md qbx-btn--accent ml-auto">{ctaLabelFor(offer.type)}</span>
+            {/* A styled <span>, not <Button> — this whole card is already a
+                <Link>, and nesting an actual <button> inside an <a> is
+                invalid HTML. buttonVariants() gives the same classes
+                without the element. */}
+            <span className={buttonVariants({ variant: "accent", className: "ml-auto px-[22px] py-[11px] text-base" })}>
+              {ctaLabelFor(offer.type)}
+            </span>
           </div>
         </div>
       </Link>
@@ -109,7 +117,10 @@ export function OfferCard({ offer, size }: { offer: OfferCardData; size: "featur
         )}
       </div>
       <span
-        className={isFree ? "qbx-btn qbx-btn--sm" : "qbx-btn qbx-btn--sm qbx-btn--accent-outline"}
+        className={buttonVariants({
+          variant: isFree ? "accent" : "accent-outline",
+          className: "px-4 py-2 text-[15px]",
+        })}
         style={isFree ? { background: "var(--canvas-soft)", color: "var(--ink-700)" } : undefined}
       >
         {ctaLabelFor(offer.type)}

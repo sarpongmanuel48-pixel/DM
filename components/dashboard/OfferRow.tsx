@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { OFFER_TYPE_ICON } from "@/components/offer-card/icons";
 import { formatPrice, type OfferType, type PriceUnit } from "@/lib/pricing";
 
@@ -55,7 +57,7 @@ export function OfferRow({ offer }: { offer: OfferRowData }) {
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           <span className="text-sm font-semibold text-ink-900">{offer.name}</span>
-          {offer.isFeatured && <span className="qbx-badge qbx-badge--brand">Featured</span>}
+          {offer.isFeatured && <Badge variant="brand">Featured</Badge>}
         </div>
         <div className="font-mono text-[11.5px] text-ink-500">{formatPrice(offer.priceCents, offer.priceUnit)}</div>
       </div>
@@ -90,19 +92,14 @@ export function OfferRow({ offer }: { offer: OfferRowData }) {
         {offer.lastSyncedAt ? new Date(offer.lastSyncedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}
       </div>
 
-      <label className="qbx-switch flex-none">
-        <input
-          type="checkbox"
-          checked={visible}
-          onChange={(e) => {
-            setVisible(e.target.checked);
-            void patchOffer(offer.id, { visible: e.target.checked }).then(() => router.refresh());
-          }}
-        />
-        <span className="qbx-switch__track">
-          <span className="qbx-switch__thumb" />
-        </span>
-      </label>
+      <Switch
+        className="flex-none"
+        checked={visible}
+        onCheckedChange={(checked) => {
+          setVisible(checked);
+          void patchOffer(offer.id, { visible: checked }).then(() => router.refresh());
+        }}
+      />
     </div>
   );
 }

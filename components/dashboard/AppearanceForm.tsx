@@ -2,6 +2,8 @@ import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { requireAdminForCreator } from "@/lib/whop/dashboard-auth";
 import { ACCENT_COLOR_PRESETS, isValidHexColor } from "@/lib/creator-accent";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 /**
  * Curated presets first, full custom color for anyone who wants it —
@@ -29,8 +31,8 @@ export function AppearanceForm({ creatorId, accentColor }: { creatorId: string; 
   return (
     <div className="flex flex-col gap-4 rounded-lg border border-hairline bg-white p-5">
       <h2 className="text-[13.5px] font-semibold text-ink-900">Appearance</h2>
-      <div className="qbx-field">
-        <span className="qbx-label">Accent color</span>
+      <div className="flex flex-col gap-1.5">
+        <Label>Accent color</Label>
         <p className="text-xs text-ink-500">Every button and price on your page uses this color.</p>
         <div className="mt-1 flex flex-wrap items-center gap-2.5">
           {ACCENT_COLOR_PRESETS.map((preset) => {
@@ -66,9 +68,9 @@ export function AppearanceForm({ creatorId, accentColor }: { creatorId: string; 
               className="cursor-pointer"
               style={{ width: 30, height: 30, padding: 0, border: "none", borderRadius: 9999, overflow: "hidden" }}
             />
-            <button type="submit" className="qbx-btn qbx-btn--utility">
+            <Button type="submit" variant="utility">
               Use custom
-            </button>
+            </Button>
           </form>
         </div>
       </div>
