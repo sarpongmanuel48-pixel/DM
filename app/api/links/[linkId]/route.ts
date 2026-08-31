@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdminForCreator, DashboardAuthError } from "@/lib/whop/dashboard-auth";
+import { DashboardAuthError } from "@/lib/whop/dashboard-auth";
+import { requireAdminForCreatorAnyPlatform } from "@/lib/creator-auth";
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ linkId: string }> }) {
   const { linkId } = await params;
@@ -11,7 +12,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   }
 
   try {
-    await requireAdminForCreator(link.creatorId, request.headers);
+    await requireAdminForCreatorAnyPlatform(link.creatorId, request.headers);
   } catch (error) {
     if (error instanceof DashboardAuthError) {
       return NextResponse.json({ error: error.message }, { status: 403 });

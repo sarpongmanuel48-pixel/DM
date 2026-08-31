@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { requireAdminForCreator } from "@/lib/whop/dashboard-auth";
+import { requireAdminForCreatorAnyPlatform } from "@/lib/creator-auth";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -29,7 +29,7 @@ export function SaveIdentityForm({
     // Server Actions bypass the layout's page-render auth check — a
     // client that already loaded the page could still invoke this
     // directly, so it re-verifies admin access itself.
-    await requireAdminForCreator(creatorId, await headers());
+    await requireAdminForCreatorAnyPlatform(creatorId, await headers());
     await prisma.creator.update({
       where: { id: creatorId },
       data: {

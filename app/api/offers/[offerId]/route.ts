@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireAdminForCreator, DashboardAuthError } from "@/lib/whop/dashboard-auth";
+import { DashboardAuthError } from "@/lib/whop/dashboard-auth";
+import { requireAdminForCreatorAnyPlatform } from "@/lib/creator-auth";
 
 /**
  * Read-only-vs-editable is enforced here, not just in the UI: this schema
@@ -29,7 +30,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   }
 
   try {
-    await requireAdminForCreator(offer.creatorId, request.headers);
+    await requireAdminForCreatorAnyPlatform(offer.creatorId, request.headers);
   } catch (error) {
     if (error instanceof DashboardAuthError) {
       return NextResponse.json({ error: error.message }, { status: 403 });

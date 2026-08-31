@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { requireAdminForCreator } from "@/lib/whop/dashboard-auth";
+import { requireAdminForCreatorAnyPlatform } from "@/lib/creator-auth";
 import { ACCENT_COLOR_PRESETS, isValidHexColor } from "@/lib/creator-accent";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -9,20 +9,20 @@ import { Button } from "@/components/ui/button";
  * Curated presets first, full custom color for anyone who wants it —
  * matches Linktree's actual editor pattern (checked directly, not
  * assumed). Each preset is its own single-swatch form so a tap saves
- * immediately, the same requireAdminForCreator-gated server-action
- * pattern SaveIdentityForm.tsx uses, no client-side JS needed.
+ * immediately, the same requireAdminForCreatorAnyPlatform-gated
+ * server-action pattern SaveIdentityForm.tsx uses, no client-side JS needed.
  */
 export function AppearanceForm({ creatorId, accentColor }: { creatorId: string; accentColor: string }) {
   async function savePreset(hex: string) {
     "use server";
-    await requireAdminForCreator(creatorId, await headers());
+    await requireAdminForCreatorAnyPlatform(creatorId, await headers());
     if (!isValidHexColor(hex)) return;
     await prisma.creator.update({ where: { id: creatorId }, data: { accentColor: hex } });
   }
 
   async function saveCustom(formData: FormData) {
     "use server";
-    await requireAdminForCreator(creatorId, await headers());
+    await requireAdminForCreatorAnyPlatform(creatorId, await headers());
     const hex = String(formData.get("customColor") ?? "");
     if (!isValidHexColor(hex)) return;
     await prisma.creator.update({ where: { id: creatorId }, data: { accentColor: hex } });
