@@ -175,7 +175,9 @@ export function Hero() {
                 />
               </label>
             )}
-            <PrimaryCta className="pointer-events-auto">{ctaLabel}</PrimaryCta>
+            <PrimaryCta className="pointer-events-auto" handle={handle.trim() || undefined}>
+              {ctaLabel}
+            </PrimaryCta>
           </div>
 
           <div className="mt-7 flex items-center gap-6 text-[13px]" style={{ color: "var(--l-ink)" }}>

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { SELF_SERVE_SIGNUP_SUPPORTED, WHOP_APP_STORE_URL } from "@/lib/self-serve-signup";
 import { PrimaryCta } from "./PrimaryCta";
 
@@ -59,13 +60,16 @@ function PlanCard({
       {cta.primary ? (
         <PrimaryCta className="mt-auto">{cta.label}</PrimaryCta>
       ) : SELF_SERVE_SIGNUP_SUPPORTED ? (
-        <button
-          type="button"
-          className="mt-auto cursor-pointer rounded-xl border-none py-3 text-sm font-semibold"
-          style={{ background: "var(--l-canvas)", color: "var(--l-ink)", border: "1px solid var(--l-hairline)" }}
+        // Secondary styling on purpose, not PrimaryCta — Pro's the only
+        // tier that should carry the dark/"recommended" treatment; giving
+        // Free/Plus the same look would flatten that hierarchy.
+        <Link
+          href="/sign-up"
+          className="mt-auto block rounded-xl py-3 text-center text-sm font-semibold"
+          style={{ background: "var(--l-canvas)", color: "var(--l-ink)", border: "1px solid var(--l-hairline)", textDecoration: "none" }}
         >
           {cta.label}
-        </button>
+        </Link>
       ) : (
         // No self-serve signup in this phase — every plan starts with
         // installing on Whop; Plus/Pro upgrades happen from the dashboard's

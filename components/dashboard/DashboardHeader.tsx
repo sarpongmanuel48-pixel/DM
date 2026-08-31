@@ -3,9 +3,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export function DashboardHeader({ companyId, initials }: { companyId: string; initials: string }) {
+export function DashboardHeader({
+  companyId,
+  basePath,
+  initials,
+}: {
+  companyId?: string;
+  basePath?: string;
+  initials: string;
+}) {
   const pathname = usePathname();
-  const base = `/dashboard/${companyId}`;
+  // basePath is the standalone (/app/*) path; the Whop-embedded call site
+  // only ever passes companyId, so this is a purely additive change — its
+  // existing behavior is untouched when basePath is omitted.
+  const base = basePath ?? `/dashboard/${companyId}`;
   const NAV = [
     { href: `${base}/home`, label: "Home" },
     { href: `${base}/editor`, label: "Editor" },

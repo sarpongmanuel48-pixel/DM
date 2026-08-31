@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { SELF_SERVE_SIGNUP_SUPPORTED, WHOP_APP_STORE_URL } from "@/lib/self-serve-signup";
 
 // The one shared primary-CTA control for the whole marketing page. Every
@@ -7,14 +8,15 @@ import { SELF_SERVE_SIGNUP_SUPPORTED, WHOP_APP_STORE_URL } from "@/lib/self-serv
 // each had its own local className/style constant, which is exactly how
 // they drifted to three different paddings. Style lives in one place now:
 // .landing-button-primary in app/globals.css.
-export function PrimaryCta({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+export function PrimaryCta({ children, className = "", handle }: { children: React.ReactNode; className?: string; handle?: string }) {
   const classes = `landing-button-primary ${className}`.trim();
 
   if (SELF_SERVE_SIGNUP_SUPPORTED) {
+    const href = handle ? `/sign-up?handle=${encodeURIComponent(handle)}` : "/sign-up";
     return (
-      <button type="button" className={classes}>
+      <Link href={href} className={classes}>
         {children}
-      </button>
+      </Link>
     );
   }
 

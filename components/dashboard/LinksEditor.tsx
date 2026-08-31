@@ -11,15 +11,27 @@ export interface EditorLink {
   url: string;
 }
 
-export function LinksEditor({ companyId, links: initial }: { companyId: string; links: EditorLink[] }) {
+export function LinksEditor({
+  companyId,
+  apiBase,
+  links: initial,
+}: {
+  companyId?: string;
+  apiBase?: string;
+  links: EditorLink[];
+}) {
   const router = useRouter();
   const [links, setLinks] = useState(initial);
   const [label, setLabel] = useState("");
   const [url, setUrl] = useState("");
+  // apiBase is the standalone (/api/app/links) endpoint; the Whop-embedded
+  // call site only ever passes companyId, so this is purely additive — its
+  // existing behavior is untouched when apiBase is omitted.
+  const createUrl = apiBase ?? `/api/dashboard/${companyId}/links`;
 
   async function addLink() {
     if (!label || !url) return;
-    const res = await fetch(`/api/dashboard/${companyId}/links`, {
+    const res = await fetch(createUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ label, url }),

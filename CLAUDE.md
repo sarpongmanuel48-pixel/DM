@@ -8,20 +8,37 @@ A link-in-bio tool for creators: one page (`dm.to/<handle>`) listing everything 
 sells, with product catalogs that auto-sync from wherever the creator actually sells —
 rather than a creator manually re-entering products DM has no way to keep current.
 
-## Current phase: Whop-only, embedded, no self-serve signup
+## Current phase: two ways to become a DM creator
 
-DM runs today as an app embedded inside a creator's own Whop dashboard
-(`app/dashboard/[companyId]/`), installed from Whop's App Store. Whop's embedded auth
-(`x-whop-user-token`, see `lib/whop/dashboard-auth.ts`) *is* DM's identity system for this
-phase — **there is no DM-hosted account creation, login, or self-serve signup.** A creator
-becomes a DM creator by installing the app on Whop; nothing in the product creates a
-`Creator` any other way right now.
+There are now two independent identity paths into DM, and a `Creator` can come from either:
 
-This matters because it's exactly the assumption that broke once already: the marketing
-landing page (`app/page.tsx`, `components/landing/`) shipped with CTAs built for a
-self-serve claim-a-handle flow that doesn't exist in this phase. Its CTAs are gated behind
-`lib/host-context.ts`'s `supportsSelfServeSignup` flag for this reason — see that file
-before assuming the page's buttons do what they look like they do.
+1. **Whop-embedded** — DM runs as an app embedded inside a creator's own Whop dashboard
+   (`app/dashboard/[companyId]/`), installed from Whop's App Store. Whop's embedded auth
+   (`x-whop-user-token`, see `lib/whop/dashboard-auth.ts`) is the identity system for this
+   path. A creator becomes a DM creator by installing the app on Whop — no DM-hosted signup
+   involved at all for this path.
+2. **Standalone** — real self-serve signup at `/sign-up` (email magic-link or Google, via
+   Auth.js/NextAuth — see `lib/auth.ts`), landing in `/app/*` (not `/dashboard/[companyId]`,
+   which is Whop-specific naming a standalone creator doesn't have). See
+   `lib/standalone-auth.ts`.
+
+Both bridge into the same `Connection`-based identity model (`platform: "whop"` vs.
+`platform: "standalone"`, resolved through `lib/connectors/registry.ts`'s
+`getCreatorByExternalId` either way) — see `lib/host-context.ts`'s two `HostContext`
+implementations, `getWhopEmbeddedHostContext` and `getStandaloneHostContext`. The paths
+don't interact: a Whop-embedded creator's `Connection` never touches Auth.js's tables, and
+a standalone creator never touches `lib/whop/dashboard-auth.ts`.
+
+**A real, current gap, not a phase-1 limitation:** a standalone creator has no connector, so
+there's no way yet to create a *new* custom `Offer` from scratch — `EditorOfferList` and
+`/api/offers/[offerId]` only ever reorder/toggle/edit offers that already exist. A
+standalone creator's Offers page (`app/app/offers/`) is correctly empty until that's built.
+
+This file used to warn that the marketing landing page's self-serve CTAs had nothing to
+hand off to — that's resolved now (`lib/self-serve-signup.ts`'s `SELF_SERVE_SIGNUP_SUPPORTED`
+is `true`, and `PrimaryCta`/`Pricing`'s CTAs point at `/sign-up` for real). The general
+principle behind that flag is still worth keeping in mind for the *next* thing that isn't
+built yet, which is why `lib/host-context.ts` still exists as the place to check.
 
 ## The long-term direction
 
@@ -35,11 +52,13 @@ former.
 
 ## Surface map
 
-- **Live**: `app/dashboard/[companyId]/*` (the embedded dashboard — home, editor, offers,
-  analytics, settings) and the public `app/[handle]` storefront. Both work end to end today.
-- **Designed ahead of capability**: `app/page.tsx` (marketing landing page). It exists and
-  renders, but every CTA that would need self-serve signup is gated off in this phase — see
-  `lib/host-context.ts`. That's expected, not a bug to fix by inventing a signup flow.
+- **Live**: `app/dashboard/[companyId]/*` (the Whop-embedded dashboard) and `app/app/*` (the
+  standalone dashboard) — home, editor, offers, analytics, settings, both routes to the same
+  five pages reusing the same presentational components, just resolving identity
+  differently. The public `app/[handle]` storefront and `app/page.tsx` (marketing landing
+  page, now with real `/sign-up` CTAs) work end to end for both paths.
+- **Designed ahead of capability**: nothing at the surface level right now — the standalone
+  Offers page is the one still-honest gap (see above), not a whole surface.
 
 ## The standing rule
 
@@ -59,9 +78,15 @@ often that's necessary, not eliminate it.
   own API shape. `lib/connectors/registry.ts` is the single platform-name → connector
   lookup point; nothing outside `lib/connectors/` should import a platform SDK directly.
 - `lib/host-context.ts` — how DM determines what surface it's currently running in
-  (`whop-embedded` today) and what that implies is possible (`supportsSelfServeSignup`,
-  identity resolution).
+  (`whop-embedded` or `standalone`) and what that implies is possible
+  (`supportsSelfServeSignup`, identity resolution).
 - `lib/whop/dashboard-auth.ts`, `webhooks.ts`, `checkout.ts` are deliberately *not* under
   `lib/connectors/whop/` — they're Whop-as-embed-host auth and DM's own Whop-as-payment-
   processor billing (the DM Pro $15/mo plan), not a creator-facing connector. Only the
   catalog-reading pieces (`lib/connectors/whop/`) implement the `Connector` contract.
+- `lib/standalone-auth.ts` — the standalone analogue of `lib/whop/dashboard-auth.ts`:
+  resolves/creates a `Creator` from an Auth.js session instead of a Whop company. `lib/auth.ts`
+  is Auth.js's own config (email magic-link + Google) — a different concern from either
+  Whop file above, with its own adapter tables (`User`/`Account`/`Session`/
+  `VerificationToken` in `prisma/schema.prisma`) that nothing else in the domain model has a
+  foreign key into; the bridge is always a `Connection` row, same as Whop.
